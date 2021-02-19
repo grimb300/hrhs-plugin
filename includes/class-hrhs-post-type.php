@@ -9,6 +9,9 @@ class HRHS_Post_Type {
    * **********/
 
   private $slug;
+  private $singular_name;
+  private $plural_name;
+  private $icon;
   private $fields;
 
   /* *******
@@ -17,8 +20,43 @@ class HRHS_Post_Type {
 
   public function __construct( $params = array() ) {
 
-    $this->slug = 'generic_cpt';
-    $this->fields = array( 'name', 'address', 'phone_number' );
+    // FIXME: I'm sure there's a more efficient way of doing defaults
+    $this->slug =
+      array_key_exists( 'slug', $params )
+      ? $params[ 'slug' ]
+      : 'generic_cpt';
+    $this->singular_name =
+      array_key_exists( 'singular_name', $params )
+      ? $params[ 'singular_name' ]
+      : 'Generic Post';
+    $this->plural_name =
+      array_key_exists( 'plural_name', $params )
+      ? $params[ 'plural_name' ]
+      : 'Generic Posts';
+    $this->icon =
+      array_key_exists( 'icon', $params )
+      ? $params[ 'icon' ]
+      : 'dashicons-hammer';
+    $this->fields =
+      array_key_exists( 'fields', $params )
+      ? $params[ 'fields' ]
+      : array(
+          array(
+            'slug' => 'generic_field_1',
+            'label' => 'Generic Field 1',
+            'default' => null,
+          ),
+          array(
+            'slug' => 'generic_field_2',
+            'label' => 'Generic Field 2',
+            'default' => null,
+          ),
+          array(
+            'slug' => 'generic_field_3',
+            'label' => 'Generic Field 3',
+            'default' => null,
+          ),
+        );
 
     $this->initialize_hrhs_post_type();
   }
@@ -29,12 +67,19 @@ class HRHS_Post_Type {
   }
 
   public function register_hrhs_post_type() {
+    $post_type_labels = array(
+      'name' => $this->plural_name,
+      'singular_name' => $this->singular_name,
+      'all_items' => "All {$this->plural_name}",
+    );
     $post_type_args = array(
-      'label' => 'Generic CPT',
+      // 'label' => 'Generic CPT',
+      'labels' => $post_type_labels,
       'description' => 'Generic Custom Post Type, nothing special here',
       'public' => true,
       'register_meta_box_cb' => array( $this, 'register_hrhs_post_type_meta_box' ),
       'supports' => false, // Default is array( 'title', 'editor' ), I want only the meta_box (defined below)
+      'menu_icon' => $this->icon,
     );
     register_post_type( $this->slug, $post_type_args );
   }
@@ -44,7 +89,7 @@ class HRHS_Post_Type {
     $meta_box_id = $post_type . '_meta_box';
     add_meta_box(
       $meta_box_id,                 // id attribute of the meta box
-      'Generic Post Type Fields',   // meta box title
+      "{$this->singular_name} Fields",   // meta box title
       array( $this, 'display_hrhs_post_type_meta_box' ), // callback, display function
       $post_type,                   // screen(s) to display meta box 
       'advanced',                   // context, built in options: advanced (default), normal, side
@@ -55,27 +100,31 @@ class HRHS_Post_Type {
     );
   }
 
-  public function display_hrhs_post_type_meta_box( $post, $args ) {
+  public function display_hrhs_post_type_meta_box( $post ) {
     $input_prefix = $this->slug . '_field';
+    $all_post_meta = get_post_meta( $post->ID );
+    hrhs_debug( 'Post Meta' );
+    hrhs_debug( $all_post_meta );
     ?>
     <table class="form-table">
       <tbody>
         <?php
         foreach( $this->fields as $field ) {
-          $input_id = $input_prefix . '_' . $field;
-          $input_name = $input_prefix . '[' . $field . ']';
+          $input_id = $input_prefix . '_' . $field[ 'slug' ];
+          $input_name = $input_prefix . '[' . $field[ 'slug' ] . ']';
+          $input_value = array_key_exists( 'default', $field ) && ! is_null( $field[ 'default' ] ) ? $field[ 'default' ] : '';
+          if ( array_key_exists( $field[ 'slug' ], $all_post_meta ) ) {
+            // Because the post_meta fields are being retrieved at once,
+             // each field is an array and the value required is at index 0
+            $input_value = $all_post_meta[ $field[ 'slug' ] ][ 0 ];
+          }
           ?>
         <tr>
           <th scope="row">
-            <label for="<?php echo $input_id; ?>"><?php echo $field; ?></label>
+            <label for="<?php echo $input_id; ?>"><?php echo $field[ 'label' ]; ?></label>
           </th>
           <td>
-            <input
-              type="text"
-              name="<?php echo $input_name; ?>"
-              id="<?php echo $input_id; ?>"
-              value="<?php echo get_post_meta( $post->ID, $field, true ); ?>"
-            >
+            <input type="text" name="<?php echo $input_name; ?>" id="<?php echo $input_id; ?>" value="<?php echo $input_value; ?>" >
           </td>
         </tr>
         <?php } ?>
@@ -96,13 +145,19 @@ class HRHS_Post_Type {
 
     // Check if any of the post fields are from this post type's form data
     $input_key = $this->slug . '_field';
+    $expected_fields = array_map(
+      function( $field ) {
+        return $field[ 'slug' ];
+      },
+      $this->fields
+    );
     if ( array_key_exists( $input_key, $my_POST ) ) {
       $input_fields = $my_POST[ $input_key ];
 
       // Iterate across the fields...
       foreach ( $input_fields as $field_name => $field_value ) {
-        // Check that this field is defined
-        if ( in_array( $field_name, $this->fields ) ) {
+        // Check that this field is expected
+        if ( in_array( $field_name, $expected_fields ) ) {
           // Update
           update_post_meta( $post_ID, $field_name, $field_value );
         }
