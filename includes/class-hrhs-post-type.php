@@ -34,6 +34,7 @@ class HRHS_Post_Type {
       'description' => 'Generic Custom Post Type, nothing special here',
       'public' => true,
       'register_meta_box_cb' => array( $this, 'register_hrhs_post_type_meta_box' ),
+      'supports' => false, // Default is array( 'title', 'editor' ), I want only the meta_box (defined below)
     );
     register_post_type( $this->slug, $post_type_args );
   }
