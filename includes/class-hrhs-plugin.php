@@ -17,8 +17,6 @@ class HRHS_Plugin {
 
   // Constructor
   public function __construct() {
-    hrhs_debug( 'Running HRHS_Plugin:__construct()' );
-
     $this->load_dependencies();
     $this->instantiate_post_types();
   }
@@ -36,16 +34,13 @@ class HRHS_Plugin {
   // Run
   // TODO: Not sure this is really necessary
   public function run() {
-    hrhs_debug( 'Running HRHS_Plugin:run()' );
   }
 
   // Plugin activation
   public function hrhs_activation() {
-    hrhs_debug( 'Running HRHS_Plugin:hrhs_activation()' );
   }
 
   // Plugin deactivation
   public function hrhs_deactivation() {
-    hrhs_debug( 'Running HRHS_Plugin:hrhs_deactivation()' );
   }
 }
