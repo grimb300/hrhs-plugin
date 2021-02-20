@@ -9,6 +9,7 @@ class HRHS_Plugin {
    * **********/
 
   // Post types
+  protected $generic_cpt;
   protected $name_info_cpt;
 
   /* *******
@@ -28,7 +29,44 @@ class HRHS_Plugin {
 
   // Instantiate the post types
   private function instantiate_post_types() {
-    $this->name_info_cpt = new HRHS_Post_Type();
+    // Default post type
+    $this->generic_cpt = new HRHS_Post_Type();
+    // Name info table from MySQL database (nameinfo)
+    $this->name_info_cpt = new HRHS_Post_Type( array(
+      'slug' => 'name_entry',
+      'singular_name' => 'Name Entry',
+      'plural_name' => 'Name Entries',
+      'fields' => array(
+        array(
+          'slug' => 'surname',
+          'label' => 'Surname',
+        ),
+        array(
+          'slug' => 'givenname',
+          'label' => 'Given Name',
+        ),
+        array(
+          'slug' => 'birth',
+          'label' => 'Date of Birth',
+        ),
+        array(
+          'slug' => 'death',
+          'label' => 'Date of Death',
+        ),
+        array(
+          'slug' => 'marriage',
+          'label' => 'Spouse',
+        ),
+        array(
+          'slug' => 'remarks',
+          'label' => 'Remarks',
+        ),
+        array(
+          'slug' => 'infoname',
+          'label' => 'Info Name',
+        ),
+      ),
+    ) );
   }
   
   // Run
