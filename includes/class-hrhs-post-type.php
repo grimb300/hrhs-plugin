@@ -24,15 +24,15 @@ class HRHS_Post_Type {
     $this->slug =
       array_key_exists( 'slug', $params )
       ? $params[ 'slug' ]
-      : 'generic_cpt';
+      : 'default_cpt';
     $this->singular_name =
       array_key_exists( 'singular_name', $params )
       ? $params[ 'singular_name' ]
-      : 'Generic Post';
+      : 'Default Post';
     $this->plural_name =
       array_key_exists( 'plural_name', $params )
       ? $params[ 'plural_name' ]
-      : 'Generic Posts';
+      : 'Default Posts';
     $this->icon =
       array_key_exists( 'icon', $params )
       ? $params[ 'icon' ]
@@ -42,18 +42,18 @@ class HRHS_Post_Type {
       ? $params[ 'fields' ]
       : array(
           array(
-            'slug' => 'generic_field_1',
-            'label' => 'Generic Field 1',
+            'slug' => 'default_field_1',
+            'label' => 'Default Field 1',
             'default' => null,
           ),
           array(
-            'slug' => 'generic_field_2',
-            'label' => 'Generic Field 2',
+            'slug' => 'default_field_2',
+            'label' => 'Default Field 2',
             'default' => null,
           ),
           array(
-            'slug' => 'generic_field_3',
-            'label' => 'Generic Field 3',
+            'slug' => 'default_field_3',
+            'label' => 'Default Field 3',
             'default' => null,
           ),
         );
@@ -64,6 +64,7 @@ class HRHS_Post_Type {
   private function initialize_hrhs_post_type() {
     add_action( 'init', array( $this, 'register_hrhs_post_type' ) );
     add_action( 'save_post', array( $this, 'save_hrhs_post_type' ));
+    add_filter( 'the_content', array( $this, 'display_hrhs_post_type_content' ) );
   }
 
   public function register_hrhs_post_type() {
@@ -73,9 +74,8 @@ class HRHS_Post_Type {
       'all_items' => "All {$this->plural_name}",
     );
     $post_type_args = array(
-      // 'label' => 'Generic CPT',
       'labels' => $post_type_labels,
-      'description' => 'Generic Custom Post Type, nothing special here',
+      'description' => 'Default Custom Post Type, nothing special here',
       'public' => true,
       'register_meta_box_cb' => array( $this, 'register_hrhs_post_type_meta_box' ),
       'supports' => false, // Default is array( 'title', 'editor' ), I want only the meta_box (defined below)
@@ -103,8 +103,6 @@ class HRHS_Post_Type {
   public function display_hrhs_post_type_meta_box( $post ) {
     $input_prefix = $this->slug . '_field';
     $all_post_meta = get_post_meta( $post->ID );
-    hrhs_debug( 'Post Meta' );
-    hrhs_debug( $all_post_meta );
     ?>
     <table class="form-table">
       <tbody>
@@ -163,5 +161,18 @@ class HRHS_Post_Type {
         }
       }
     }
+  }
+
+  public function display_hrhs_post_type_content ( $content ) {
+    global $post;
+
+    if ( is_singular() ) {
+      if ( $this->slug === $post->post_type ) {
+        return '<h3>This is a ' . $this->slug . ' post type</h3>' . $content;
+      } else {
+        return '<h3>This is not a ' . $this->slug . ' post type</h3>' . $content;
+      }
+    }
+    return $content;
   }
 }
