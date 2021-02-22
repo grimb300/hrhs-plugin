@@ -40,7 +40,7 @@ if ( ! $opt_m ) {
 # Assume the first line is the heading, print it to the output
 my $header = <INPUT_FH>;
 print OUTPUT_FH $header if ( ! $opt_m );
-print "wubba wubba\n";
+# print "wubba wubba\n";
 # Iterate across the remaining input lines
 my $total_lines = 0;
 my $kept_lines = 0;
