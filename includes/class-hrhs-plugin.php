@@ -10,6 +10,7 @@ class HRHS_Plugin {
 
   // Post types
   protected $post_types;
+  protected $search_page;
 
   /* *******
    * Methods
@@ -22,11 +23,13 @@ class HRHS_Plugin {
 
     $this->load_dependencies();
     $this->instantiate_post_types();
+    $this->instantiate_search_page();
   }
 
   // Load dependencies
   private function load_dependencies() {
     require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-post-type.php';
+    require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-search.php';
   }
 
   // Instantiate the post types
@@ -70,6 +73,11 @@ class HRHS_Plugin {
       ),
     ) );
   }
+
+  // Instantiate the search page
+  private function instantiate_search_page() {
+    $this->search_page = new HRHS_Search();
+  }
   
   // Run
   // TODO: Not sure this is really necessary
@@ -82,6 +90,8 @@ class HRHS_Plugin {
     foreach ( $this->post_types as $post_type_obj ) {
       $post_type_obj->register_hrhs_post_type();
     }
+    // Register the database search page
+    $this->search_page->hrhs_search_page_rewrite_rules();
     // Then flush the rewrite rules for them to take effect
     flush_rewrite_rules();
   }
