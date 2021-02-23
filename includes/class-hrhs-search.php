@@ -47,7 +47,6 @@ class HRHS_Search {
   }
 
   public function hrhs_search_page_rewrite_rules() {
-    hrhs_debug( 'Running hrhs_search_page_rewrite_rules' );
     add_rewrite_rule(
       "^{$this->slug}/?$",             // regex
       "index.php?{$this->slug}=true", // query
@@ -67,6 +66,15 @@ class HRHS_Search {
       $template = HRHS_PLUGIN_PATH . 'includes/template-hrhs-search-page.php';
     }
     return $template;
+  }
+
+  /* ******************
+   * Accessor functions
+   * ******************/
+
+  // Get the search post types/fields
+  public function get_search_types_fields() {
+    return $this->search_types_fields;
   }
 
 }

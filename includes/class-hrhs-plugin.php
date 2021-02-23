@@ -101,4 +101,13 @@ class HRHS_Plugin {
     // Flush the rewrite rules so changes take effect
     flush_rewrite_rules();
   }
+
+  /* ******************
+   * Accessor functions
+   * ******************/
+
+  // Get the search post types/fields
+  public function get_search_types_fields() {
+    return $this->search_page->get_search_types_fields();
+  }
 }
