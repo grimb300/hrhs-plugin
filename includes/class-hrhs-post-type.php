@@ -80,6 +80,7 @@ class HRHS_Post_Type {
       'register_meta_box_cb' => array( $this, 'register_hrhs_post_type_meta_box' ),
       'supports' => false, // Default is array( 'title', 'editor' ), I want only the meta_box (defined below)
       'menu_icon' => $this->icon,
+      'has_archive' => true, // Set to false if don't want archive page
     );
     register_post_type( $this->slug, $post_type_args );
   }
