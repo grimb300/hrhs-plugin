@@ -64,6 +64,7 @@ class HRHS_Post_Type {
   private function initialize_hrhs_post_type() {
     add_action( 'init', array( $this, 'register_hrhs_post_type' ) );
     add_action( 'save_post', array( $this, 'save_hrhs_post_type' ));
+    // add_filter( 'the_title', array( $this, 'display_hrhs_post_type_title' ), 10, 2 );
     add_filter( 'the_content', array( $this, 'display_hrhs_post_type_content' ) );
   }
 
@@ -164,7 +165,7 @@ class HRHS_Post_Type {
     }
   }
 
-  public function display_hrhs_post_type_content ( $content ) {
+  public function display_hrhs_post_type_content( $content ) {
     global $post;
 
     if ( is_singular() ) {
@@ -176,4 +177,17 @@ class HRHS_Post_Type {
     }
     return $content;
   }
+
+  // public function display_hrhs_post_type_title( $title, $post_ID ) {
+  //   global $post;
+
+  //   if ( get_post_type( $post_ID ) === $this->slug ) {
+  //     hrhs_debug( 'Title for post type ' . $this->slug );
+  //     hrhs_debug( $title );
+  //     // Return a blank array, essentially deleting the headers for this post
+  //     return '';
+  //   }
+  //   return $title;
+  // }
+
 }
