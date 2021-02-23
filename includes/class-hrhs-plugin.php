@@ -9,7 +9,9 @@ class HRHS_Plugin {
    * **********/
 
   // Post types
-  protected $post_types;
+  protected $post_type_defs;
+  protected $post_type_objs;
+  // Search page
   protected $search_page;
 
   /* *******
@@ -18,8 +20,46 @@ class HRHS_Plugin {
 
   // Constructor
   public function __construct() {
+    // Define the post types
+    $this->post_type_defs = array(
+      'name_info' => array(
+        'slug' => 'name_entry',
+        'singular_name' => 'Name Entry',
+        'plural_name' => 'Name Entries',
+        'fields' => array(
+          array(
+            'slug' => 'surname',
+            'label' => 'Surname',
+          ),
+          array(
+            'slug' => 'givenname',
+            'label' => 'Given Name',
+          ),
+          array(
+            'slug' => 'birth',
+            'label' => 'Date of Birth',
+          ),
+          array(
+            'slug' => 'death',
+            'label' => 'Date of Death',
+          ),
+          array(
+            'slug' => 'marriage',
+            'label' => 'Spouse',
+          ),
+          array(
+            'slug' => 'remarks',
+            'label' => 'Remarks',
+          ),
+          array(
+            'slug' => 'infoname',
+            'label' => 'Info Name',
+          ),
+        ),
+    );
+
     // Just in case instantiate_post_types() doesn't instantiate any post types
-    $this->post_types = array();
+    $this->post_type_objs = array();
 
     $this->load_dependencies();
     $this->instantiate_post_types();
@@ -35,9 +75,9 @@ class HRHS_Plugin {
   // Instantiate the post types
   private function instantiate_post_types() {
     // Default post type
-    $this->post_types[ 'default' ] = new HRHS_Post_Type();
+    $this->post_type_objs[ 'default' ] = new HRHS_Post_Type();
     // Name info table from MySQL database (nameinfo)
-    $this->post_types[ 'name_info' ] = new HRHS_Post_Type( array(
+    $this->post_type_objs[ 'name_info' ] = new HRHS_Post_Type( array(
       'slug' => 'name_entry',
       'singular_name' => 'Name Entry',
       'plural_name' => 'Name Entries',
@@ -87,7 +127,7 @@ class HRHS_Plugin {
   // Plugin activation
   public function hrhs_activation() {
     // Register each of the post types
-    foreach ( $this->post_types as $post_type_obj ) {
+    foreach ( $this->post_type_objs as $post_type_obj ) {
       $post_type_obj->register_hrhs_post_type();
     }
     // Register the database search page
