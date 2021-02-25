@@ -27,7 +27,7 @@ class HRHS_Plugin {
         'singular_name' => 'Name Entry',
         'plural_name' => 'Name Entries',
         'fields' => array(
-          array( 'label' => 'Surname',       'slug' => 'surname',   'searchable' => 'all', ),
+          array( 'label' => 'Surname',       'slug' => 'surname',   'searchable' => 'all' ),
           array( 'label' => 'Given Name',    'slug' => 'givenname', 'searchable' => 'member' ),
           array( 'label' => 'Date of Birth', 'slug' => 'birth',     'searchable' => 'member' ),
           array( 'label' => 'Date of Death', 'slug' => 'death',     'searchable' => 'member' ),
@@ -42,7 +42,7 @@ class HRHS_Plugin {
         'singular_name' => 'News Entry',
         'plural_name' => 'News Entries',
         'fields' => array(
-          array( 'label' => 'Year',            'slug' => 'year',  'searchable' => 'member', ),
+          array( 'label' => 'Year',            'slug' => 'year',  'searchable' => 'member' ),
           array( 'label' => 'Newspaper',       'slug' => 'news',  'searchable' => 'member' ),
           array( 'label' => 'Number of Pages', 'slug' => 'pages', 'searchable' => 'member' ),
           array( 'label' => 'Sort Order',      'slug' => 'sort',  'searchable' => 'none' ),
@@ -53,7 +53,7 @@ class HRHS_Plugin {
         'singular_name' => 'Place Entry',
         'plural_name' => 'Place Entries',
         'fields' => array(
-          array( 'label' => 'Place Name',  'slug' => 'placename',  'searchable' => 'member', ),
+          array( 'label' => 'Place Name',  'slug' => 'placename',  'searchable' => 'member' ),
           array( 'label' => 'Other Name',  'slug' => 'othername',  'searchable' => 'member' ),
           array( 'label' => 'Designator',  'slug' => 'designator', 'searchable' => 'member' ),
           array( 'label' => 'Location',    'slug' => 'location',   'searchable' => 'member' ),
@@ -94,44 +94,10 @@ class HRHS_Plugin {
 
   // Instantiate the post types
   private function instantiate_post_types() {
-    // Default post type
-    $this->post_type_objs[ 'default' ] = new HRHS_Post_Type();
-    // Name info table from MySQL database (nameinfo)
-    $this->post_type_objs[ 'name_info' ] = new HRHS_Post_Type( array(
-      'slug' => 'name_entry',
-      'singular_name' => 'Name Entry',
-      'plural_name' => 'Name Entries',
-      'fields' => array(
-        array(
-          'slug' => 'surname',
-          'label' => 'Surname',
-        ),
-        array(
-          'slug' => 'givenname',
-          'label' => 'Given Name',
-        ),
-        array(
-          'slug' => 'birth',
-          'label' => 'Date of Birth',
-        ),
-        array(
-          'slug' => 'death',
-          'label' => 'Date of Death',
-        ),
-        array(
-          'slug' => 'marriage',
-          'label' => 'Spouse',
-        ),
-        array(
-          'slug' => 'remarks',
-          'label' => 'Remarks',
-        ),
-        array(
-          'slug' => 'infoname',
-          'label' => 'Info Name',
-        ),
-      ),
-    ) );
+    // Iterate across the post types in post_type_defs
+    foreach ( $this->post_type_defs as $post_type => $post_type_def ) {
+      $this->post_type_objs[ $post_type ] = new HRHS_Post_type( $post_type_def );
+    }
   }
 
   // Instantiate the search page
