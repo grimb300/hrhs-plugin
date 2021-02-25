@@ -56,6 +56,7 @@ class HRHS_Plugin {
             'label' => 'Info Name',
           ),
         ),
+      ),
     );
 
     // Just in case instantiate_post_types() doesn't instantiate any post types
