@@ -102,7 +102,9 @@ class HRHS_Plugin {
 
   // Instantiate the search page
   private function instantiate_search_page() {
-    $this->search_page = new HRHS_Search();
+    $this->search_page = new HRHS_Search( array(
+      'search_types_fields' => $this->post_type_defs
+    ) );
   }
   
   // Run
