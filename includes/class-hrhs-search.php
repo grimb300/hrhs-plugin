@@ -116,8 +116,6 @@ class HRHS_Search {
       }
       // TODO: Do I need to sanitize further since the needle is used in a MySQL query?
       $needle = strtolower( filter_var( trim( $post_data[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
-      $needle_query_str = sprintf( '%%%s%%', $needle );
-      hrhs_debug( 'SQL query string ' . $needle_query_str );
       $haystacks = array_keys( $post_data[ 'haystacks' ] );
 
       // Iterate across the search types and get the results
@@ -132,10 +130,8 @@ class HRHS_Search {
           if ( 'none' !== $field[ 'searchable' ] ) {
             $meta_query[ $field[ 'slug' ] . '_clause' ] = array(
               'key' => $field[ 'slug' ],
-              // 'value' => $needle_query_str,
-              // 'compare' => 'LIKE',
-              'value' => $needle,
-              'compare' => 'LIKE',
+              'value' => $needle,   // NOTE: Using LIKE will automagically add
+              'compare' => 'LIKE',  //       SQL wildcards (%) around the value
             );
           }
         }
