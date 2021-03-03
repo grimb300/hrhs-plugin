@@ -87,10 +87,10 @@ class HRHS_Search {
     <input type="checkbox" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s" checked>
     <label for="hrhs-search-haystacks-%s">%s</label>
     END;
-    foreach ( $this->search_types_fields as $type ) {
+    foreach ( $this->search_types_fields as $type_index => $type ) {
       $slug = array_key_exists( 'slug', $type ) ? $type[ 'slug' ] : 'unknown';
-      $name = array_key_exists( 'plural_name', $type ) ? $type[ 'plural_name' ] : 'Unknown';
-      $search_form .= sprintf( $checkbox_template, $slug, $slug, $slug, $name );
+      $label = array_key_exists( 'plural_name', $type ) ? $type[ 'plural_name' ] : 'Unknown';
+      $search_form .= sprintf( $checkbox_template, $type_index, $type_index, $slug, $label );
     }
     // Add the search button and close the form
     $search_form .= <<<END
@@ -114,12 +114,71 @@ class HRHS_Search {
         // Return warning message
         return '<h3>Must choose at least one database to search</h3>';
       }
-      $search_string = filter_var( trim( $post_data[ 'needle' ] ), FILTER_SANITIZE_STRING );
-      $search_types = $post_data[ 'haystacks' ];
+      // TODO: Do I need to sanitize further since the needle is used in a MySQL query?
+      $needle = strtolower( filter_var( trim( $post_data[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
+      $needle_query_str = sprintf( '%%%s%%', $needle );
+      hrhs_debug( 'SQL query string ' . $needle_query_str );
+      $haystacks = array_keys( $post_data[ 'haystacks' ] );
 
       // Iterate across the search types and get the results
-      foreach ( $post_data[ 'haystacks' ] as $type => $value ) {
-        $search_results .= sprintf( '<p>Searching for %s posts</p>', $type );
+      foreach ( $haystacks as $haystack ) {
+        // Get the post type slug for this haystack
+        $post_type_slug = $this->search_types_fields[ $haystack ][ 'slug' ];
+        // Build a meta query for this haystack
+        $meta_query = array(
+          'relation' => 'OR', // Needle must match at least one field
+        );
+        foreach( $this->search_types_fields[ $haystack ][ 'fields' ] as $field ) {
+          if ( 'none' !== $field[ 'searchable' ] ) {
+            $meta_query[ $field[ 'slug' ] . '_clause' ] = array(
+              'key' => $field[ 'slug' ],
+              // 'value' => $needle_query_str,
+              // 'compare' => 'LIKE',
+              'value' => $needle,
+              'compare' => 'LIKE',
+            );
+          }
+        }
+        hrhs_debug( 'Meta query:' );
+        hrhs_debug( $meta_query );
+        $matching_posts = get_posts( array(
+          'numberposts' => -1, // Return all matches
+          'fields' => 'ids',   // Return an array of post IDs
+          'post_type' => $post_type_slug, // Search only the current haystack's post type
+          'meta_query' => $meta_query,
+        ) );
+        if ( count( $matching_posts ) > 0 ) {
+          // Start the table
+          $search_results .= '<table><tbody>';
+          // Build the table heading
+          $search_results .= '<tr>';
+          foreach( $this->search_types_fields[ $haystack ][ 'fields' ] as $field ) {
+            $search_results .= '<th scope="col">' . $field[ 'label' ] . '</th>';
+          }
+          $search_results .= '</tr>';
+          // Display each entry
+          foreach( $matching_posts as $post_id ) {
+            $search_results .= '<tr>';
+            $meta_data = get_post_meta( $post_id );
+            foreach( $this->search_types_fields[ $haystack ][ 'fields' ] as $field ) {
+              $search_results .= sprintf( '<td>%s</td>', array_key_exists( $field[ 'slug' ], $meta_data ) ? $meta_data[ $field[ 'slug' ] ][ 0 ] : '' );
+            }
+            $search_results .= '</tr>';
+          }
+          // Close the table
+          $search_results .= '</tbody></table>';
+          ?>
+          
+              
+                
+              
+              <tr>
+                <td></td>
+              </tr>
+            
+          <?php
+        }
+        $search_results .= sprintf( '<p>Found %d matches for %s posts</p>', count( $matching_posts ), $haystack );
       }
     }
 
