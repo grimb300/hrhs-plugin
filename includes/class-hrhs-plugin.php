@@ -129,6 +129,10 @@ class HRHS_Plugin {
     }
     // Register the database search page
     $this->search_page->hrhs_search_page_rewrite_rules();
+    // Register the search page for each post type
+    foreach ( $this->post_type_objs as $post_type_obj ) {
+      $post_type_obj->register_post_type_search_page();
+    }
     // Then flush the rewrite rules for them to take effect
     flush_rewrite_rules();
   }

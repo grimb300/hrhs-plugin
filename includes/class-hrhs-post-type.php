@@ -214,4 +214,13 @@ class HRHS_Post_Type {
   //   return $title;
   // }
 
+  /* ******************
+   * Accessor functions
+   * ******************/
+
+  // Register the search page rewrite rules (used by the plugin activation function)
+  public function register_post_type_search_page() {
+    $this->search_page->hrhs_search_page_rewrite_rules();
+  }
+
 }
