@@ -102,8 +102,17 @@ class HRHS_Plugin {
 
   // Instantiate the search page
   private function instantiate_search_page() {
+    // Build the search_types_fields and search_types_label arrays out of post_types_defs
+    $search_types_fields = array();
+    $search_types_label = array();
+    foreach ( $this->post_type_defs as $post_type ) {
+      $search_types_fields[ $post_type[ 'slug' ] ] = $post_type[ 'fields' ];
+      $search_types_label[ $post_type[ 'slug' ] ] = $post_type[ 'plural_name' ];
+    }
     $this->search_page = new HRHS_Search( array(
-      'search_types_fields' => $this->post_type_defs
+      // Using the default slug and title for now
+      'search_types_fields' => $search_types_fields,
+      'search_types_label' => $search_types_label
     ) );
   }
   
@@ -135,7 +144,8 @@ class HRHS_Plugin {
    * ******************/
 
   // Get the search post types/fields
-  public function get_search_types_fields() {
-    return $this->search_page->get_search_types_fields();
-  }
+  // TODO: Commenting out until I find a use for it
+  // public function get_search_types_fields() {
+  //   return $this->search_page->get_search_types_fields();
+  // }
 }

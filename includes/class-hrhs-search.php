@@ -9,7 +9,9 @@ class HRHS_Search {
    * **********/
 
   private $slug;
+  private $title;
   private $search_types_fields;
+  private $search_types_label;
 
   /* *******
    * Methods
@@ -19,9 +21,13 @@ class HRHS_Search {
 
     // FIXME: I'm sure there's a more efficient way of doing defaults
     $this->slug =
-      array_key_exists( 'slug', $params )
-      ? $param[ 'slug' ]
-      : 'hrhs-database';
+    array_key_exists( 'slug', $params )
+    ? $params[ 'slug' ]
+    : 'hrhs-database';
+    $this->title =
+      array_key_exists( 'title', $params )
+      ? $params[ 'title' ]
+      : 'HRHS Database Search';
     $this->search_types_fields =
       array_key_exists( 'search_types_fields', $params )
       ? $params[ 'search_types_fields' ]
@@ -32,6 +38,10 @@ class HRHS_Search {
           'default_field_3',
         )
       );
+    $this->search_types_label = 
+      array_key_exists( 'search_types_label', $params )
+      ? $params[ 'search_types_label' ]
+      : array( 'default_cpt' => 'Default CPT' );
 
     $this->initialize_hrhs_search();
   }
@@ -44,6 +54,7 @@ class HRHS_Search {
     add_action( 'init', array( $this, 'hrhs_search_page_rewrite_rules' ) );
     add_filter( 'query_vars', array( $this, 'hrhs_search_page_query_vars' ) );
     add_filter( 'template_include', array( $this, 'hrhs_search_page_template_include' ), 50 );
+    add_filter( 'hrhs_search_title', array( $this, 'display_hrhs_search_title' ) );
     add_filter( 'hrhs_search_form', array( $this, 'display_hrhs_search_form' ) );
     add_filter( 'hrhs_search_results', array( $this, 'display_hrhs_search_results' ) );
   }
@@ -74,11 +85,28 @@ class HRHS_Search {
    * Display filter functions
    * ************************/
 
+  public function display_hrhs_search_title( $title ) {
+    // Check which search page this is
+    if ( ! $this->is_current_search_page() ) {
+      // Not my page, bail and return without modification
+      return $title;
+    }
+
+    // Replace with the title property
+    return $this->title;
+  }
+
   public function display_hrhs_search_form( $search_form ) {
+    // Check which search page this is
+    if ( ! $this->is_current_search_page() ) {
+      // Not my page, bail and return without modification
+      return $search_form;
+    }
+    
     // Open the form and addd the search text box
     $search_form = <<<END
-    <!-- <form id="hrhs-search" role="search" class="widget widget_search" action="#hrhs-search" method="post"> -->
-    <form id="hrhs-search" role="search" class="widget widget_search" action="" method="get">
+    <form id="hrhs-search" role="search" class="widget widget_search" action="" method="post">
+    <!-- <form id="hrhs-search" role="search" class="widget widget_search" action="" method="get"> -->
       <label for="hrhs-search-needle">Search...</label>
       <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle">
     END;
@@ -87,10 +115,10 @@ class HRHS_Search {
     <input type="checkbox" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s" checked>
     <label for="hrhs-search-haystacks-%s">%s</label>
     END;
-    foreach ( $this->search_types_fields as $type_index => $type ) {
-      $slug = array_key_exists( 'slug', $type ) ? $type[ 'slug' ] : 'unknown';
-      $label = array_key_exists( 'plural_name', $type ) ? $type[ 'plural_name' ] : 'Unknown';
-      $search_form .= sprintf( $checkbox_template, $type_index, $type_index, $slug, $label );
+    foreach ( array_keys( $this->search_types_fields ) as $type ) {
+      // Get the label for this type, "Unknown" if it doesn't exist
+      $label = array_key_exists( $type, $this->search_types_label ) ? $this->search_types_label[ $type ] : 'Unknown';
+      $search_form .= sprintf( $checkbox_template, $type, $type, $type, $label );
     }
     // Add the search button and close the form
     $search_form .= <<<END
@@ -102,6 +130,12 @@ class HRHS_Search {
   }
   
   public function display_hrhs_search_results( $search_results ) {
+    // Check which search page this is
+    if ( ! $this->is_current_search_page() ) {
+      // Not my page, bail and return without modification
+      return $search_results;
+    }
+    
     // Check to see if there is a search to perform
     if ( array_key_exists( 'hrhs-search', $_REQUEST ) ) {
       // Grab the search string and the data base(s) to search
@@ -117,16 +151,24 @@ class HRHS_Search {
       // TODO: Do I need to sanitize further since the needle is used in a MySQL query?
       $needle = strtolower( filter_var( trim( $post_data[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
       $haystacks = array_keys( $post_data[ 'haystacks' ] );
+      // hrhs_debug( 'Searching...' );
+      // hrhs_debug( array(
+      //   'needle' => $needle,
+      //   'haystacks' => $haystacks
+      // ) );
 
       // Iterate across the search types and get the results
       foreach ( $haystacks as $haystack ) {
-        // Get the post type slug for this haystack
-        $post_type_slug = $this->search_types_fields[ $haystack ][ 'slug' ];
+        // Get the fields for this haystack (post type)
+        $fields = array_key_exists( $haystack, $this->search_types_fields ) ? $this->search_types_fields[ $haystack ] : array();
+
         // Build a meta query for this haystack
         $meta_query = array(
           'relation' => 'OR', // Needle must match at least one field
         );
-        foreach( $this->search_types_fields[ $haystack ][ 'fields' ] as $field ) {
+        foreach( $fields as $field ) {
+          // hrhs_debug( 'Searching field ' . $field[ 'slug' ] );
+          // hrhs_debug( $field );
           if ( 'none' !== $field[ 'searchable' ] ) {
             $meta_query[ $field[ 'slug' ] . '_clause' ] = array(
               'key' => $field[ 'slug' ],
@@ -135,20 +177,23 @@ class HRHS_Search {
             );
           }
         }
-        hrhs_debug( 'Meta query:' );
-        hrhs_debug( $meta_query );
-        $matching_posts = get_posts( array(
+        // hrhs_debug( 'Meta query:' );
+        // hrhs_debug( $meta_query );
+        $get_posts_query = array(
           'numberposts' => -1, // Return all matches
           'fields' => 'ids',   // Return an array of post IDs
-          'post_type' => $post_type_slug, // Search only the current haystack's post type
+          'post_type' => $haystack, // Search only the current haystack's post type
           'meta_query' => $meta_query,
-        ) );
+        );
+        hrhs_debug( 'Get Posts query:' );
+        hrhs_debug( $get_posts_query );
+        $matching_posts = get_posts( $get_posts_query );
         if ( count( $matching_posts ) > 0 ) {
           // Start the table
           $search_results .= '<table><tbody>';
           // Build the table heading
           $search_results .= '<tr>';
-          foreach( $this->search_types_fields[ $haystack ][ 'fields' ] as $field ) {
+          foreach( $fields as $field ) {
             $search_results .= '<th scope="col">' . $field[ 'label' ] . '</th>';
           }
           $search_results .= '</tr>';
@@ -156,7 +201,7 @@ class HRHS_Search {
           foreach( $matching_posts as $post_id ) {
             $search_results .= '<tr>';
             $meta_data = get_post_meta( $post_id );
-            foreach( $this->search_types_fields[ $haystack ][ 'fields' ] as $field ) {
+            foreach( $fields as $field ) {
               $search_results .= sprintf( '<td>%s</td>', array_key_exists( $field[ 'slug' ], $meta_data ) ? $meta_data[ $field[ 'slug' ] ][ 0 ] : '' );
             }
             $search_results .= '</tr>';
@@ -187,8 +232,15 @@ class HRHS_Search {
    * ******************/
 
   // Get the search post types/fields
-  public function get_search_types_fields() {
-    return $this->search_types_fields;
+  // TODO: Commenting out until I find a use for it
+  // public function get_search_types_fields() {
+  //   return $this->search_types_fields;
+  // }
+
+  // Check if this is the current search page
+  // By default, all HRHS_Search pages use the same template and same filters, check against the slug of the current page
+  private function is_current_search_page() {
+    return boolval( get_query_var( $this->slug, false ) );
   }
 
 }

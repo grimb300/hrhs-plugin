@@ -13,6 +13,10 @@ class HRHS_Post_Type {
   private $plural_name;
   private $icon;
   private $fields;
+  private $search_page_slug;
+  private $search_page_title;
+  private $search_page_types_fields;
+  private $search_page;
 
   /* *******
    * Methods
@@ -58,7 +62,18 @@ class HRHS_Post_Type {
           ),
         );
 
+    // Search page params
+    $this->search_page_slug = $this->slug . '-search';
+    $this->search_page_title = $this->plural_name . ' Search';
+    $this->search_page_types_fields = array(
+      $this->slug => $this->fields
+    );
+    $this->search_page_types_label = array(
+      $this->slug => $this->plural_name
+    );
+
     $this->initialize_hrhs_post_type();
+    $this->instantiate_search_page( $params );
   }
   
   private function initialize_hrhs_post_type() {
@@ -66,6 +81,15 @@ class HRHS_Post_Type {
     add_action( 'save_post', array( $this, 'save_hrhs_post_type' ));
     // add_filter( 'the_title', array( $this, 'display_hrhs_post_type_title' ), 10, 2 );
     add_filter( 'the_content', array( $this, 'display_hrhs_post_type_content' ) );
+  }
+
+  private function instantiate_search_page( $params ) {
+    $this->search_page = new HRHS_Search( array(
+      'slug' => $this->search_page_slug,
+      'title' => $this->search_page_title,
+      'search_types_fields' => $this->search_page_types_fields,
+      'search_types_label' => $this->search_page_types_label
+    ) );
   }
 
   public function register_hrhs_post_type() {

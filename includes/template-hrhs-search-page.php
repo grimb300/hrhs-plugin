@@ -15,8 +15,13 @@ $description = get_the_archive_description();
 
 <?php //if ( have_posts() ) : ?>
 
+<?php
+// Build the page title
+// Filter should be defined in class-hrhs-search.php
+$page_title = apply_filters( 'hrhs_search_title', 'Search Page Title Goes Here' );
+?>
 <header class="page-header alignwide">
-  <h1 class="page-title">HRHS Database Search</h1>
+  <h1 class="page-title"><?php echo $page_title; ?></h1>
 </header><!-- .page-header -->
 
 <?php
