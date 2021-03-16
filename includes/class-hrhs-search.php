@@ -33,10 +33,10 @@ class HRHS_Search {
         )
       );
 
-    $this->initialize_hrhs_save();
+    $this->initialize_hrhs_search();
   }
 
-  private function initialize_hrhs_save() {
+  private function initialize_hrhs_search() {
     $this->create_hrhs_search_page();
   }
 
