@@ -150,6 +150,9 @@ class HRHS_Search {
       return $original_search_results;
     }
     
+    // String to hold the search results
+    $search_results = '';
+    
     // Check to see if there is a search to perform
     if ( array_key_exists( 'hrhs-search', $_REQUEST ) ) {
       // Grab the search string and the data base(s) to search
@@ -172,7 +175,6 @@ class HRHS_Search {
       // ) );
 
       // Iterate across the search types and get the results
-      $search_results = '';
       foreach ( $haystacks as $haystack ) {
         // Get the search and display fields for this haystack (post type)
         $fields = array_key_exists( $haystack, $this->search_types_fields ) ? $this->search_types_fields[ $haystack ] : array();

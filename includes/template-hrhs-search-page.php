@@ -11,8 +11,14 @@ get_header();
 
 if ( is_user_logged_in() ) {
   $current_user = wp_get_current_user();
-  echo '<h4>Welcome, ' . $current_user->first_name . '!</h4>';
-  wp_loginout();
+  $display_name = $current_user->user_login;
+  if ( ! empty( $current_user->first_name ) ) {
+    $display_name = $current_user->first_name;
+  } elseif ( ! empty( $current_user->last_name ) ) {
+    $display_name = $current_user->last_name;
+  }
+  echo '<h4>Welcome, ' . $display_name . '!</h4>';
+  wp_loginout( $_SERVER[ 'REQUEST_URI' ] );
 } else {
   echo '<h4>User is NOT logged in</h4>';
   wp_login_form( array(
