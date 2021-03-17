@@ -110,16 +110,21 @@ class HRHS_Search {
       <label for="hrhs-search-needle">Search...</label>
       <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle">
     END;
+
     // Add a checkbox per post type
-    $checkbox_template = <<<END
-    <input type="checkbox" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s" checked>
-    <label for="hrhs-search-haystacks-%s">%s</label>
-    END;
-    foreach ( array_keys( $this->search_types_fields ) as $type ) {
-      // Get the label for this type, "Unknown" if it doesn't exist
-      $label = array_key_exists( $type, $this->search_types_label ) ? $this->search_types_label[ $type ] : 'Unknown';
-      $search_form .= sprintf( $checkbox_template, $type, $type, $type, $label );
+    // But only if there is more than one post type
+    if ( count( $this->search_types_fields ) > 1 ) {
+      $checkbox_template = <<<END
+      <input type="checkbox" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s" checked>
+      <label for="hrhs-search-haystacks-%s">%s</label>
+      END;
+      foreach ( array_keys( $this->search_types_fields ) as $type ) {
+        // Get the label for this type, "Unknown" if it doesn't exist
+        $label = array_key_exists( $type, $this->search_types_label ) ? $this->search_types_label[ $type ] : 'Unknown';
+        $search_form .= sprintf( $checkbox_template, $type, $type, $type, $label );
+      }
     }
+    
     // Add the search button and close the form
     $search_form .= <<<END
       <input type="submit" class="search-submit " value="Search">
