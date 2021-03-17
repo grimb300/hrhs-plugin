@@ -111,20 +111,29 @@ class HRHS_Search {
       <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle">
     END;
 
-    // Add a checkbox per post type
-    // But only if there is more than one post type
-    if ( count( $this->search_types_fields ) > 1 ) {
+    // Get the post types (haystacks) this search page will be searching through
+    $haystacks = array_keys( $this->search_types_fields );
+    hrhs_debug( 'There are ' .count( $haystacks ) . ' post types to search' );
+    // If there is only one post type...
+    if ( count( $haystacks ) === 1 ) {
+      // ...Set the haystack value via a hidden input
+      $search_form .= sprintf(
+        '<input type="hidden" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s" value="on">',
+        $haystacks[0], $haystacks[0]
+      );
+    } else {
+      // ... Else add a checkbox per haystack
       $checkbox_template = <<<END
       <input type="checkbox" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s" checked>
       <label for="hrhs-search-haystacks-%s">%s</label>
       END;
-      foreach ( array_keys( $this->search_types_fields ) as $type ) {
-        // Get the label for this type, "Unknown" if it doesn't exist
-        $label = array_key_exists( $type, $this->search_types_label ) ? $this->search_types_label[ $type ] : 'Unknown';
-        $search_form .= sprintf( $checkbox_template, $type, $type, $type, $label );
+      foreach ( $haystacks as $haystack ) {
+        // Get the label for this haystack, "Unknown" if it doesn't exist
+        $label = array_key_exists( $haystack, $this->search_types_label ) ? $this->search_types_label[ $haystack ] : 'Unknown';
+        $search_form .= sprintf( $checkbox_template, $haystack, $haystack, $haystack, $label );
       }
     }
-    
+
     // Add the search button and close the form
     $search_form .= <<<END
       <input type="submit" class="search-submit " value="Search">
