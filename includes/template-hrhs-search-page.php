@@ -9,11 +9,19 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 get_header();
 
-$description = get_the_archive_description();
+if ( is_user_logged_in() ) {
+  $current_user = wp_get_current_user();
+  echo '<h4>Welcome, ' . $current_user->first_name . '!</h4>';
+  wp_loginout();
+} else {
+  echo '<h4>User is NOT logged in</h4>';
+  wp_login_form( array(
+    'value_username' => 'HRHS-MEMBER',
+    'value_remember' => true
+  ) );
+}
+
 ?>
-
-
-<?php //if ( have_posts() ) : ?>
 
 <?php
 // Build the page title
@@ -37,16 +45,5 @@ echo $hrhs_search_form;
 $hrhs_search_results = apply_filters( 'hrhs_search_results', '<h3>No Search Results</h3>' );
 echo $hrhs_search_results;
 ?>
-
-<?php //while ( have_posts() ) : ?>
-        <?php //the_post(); ?>
-        <?php //get_template_part( 'template-parts/content/content', get_theme_mod( 'display_excerpt_or_full_post', 'excerpt' ) ); ?>
-<?php //endwhile; ?>
-
-<?php //twenty_twenty_one_the_posts_navigation(); ?>
-
-<?php //else : ?>
-<?php //get_template_part( 'template-parts/content/content-none' ); ?>
-<?php //endif; ?>
 
 <?php get_footer(); ?>
