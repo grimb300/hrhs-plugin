@@ -116,13 +116,13 @@ class HRHS_Search {
     hrhs_debug( 'There are ' .count( $haystacks ) . ' post types to search' );
     // If there is only one post type...
     if ( count( $haystacks ) === 1 ) {
-      // ...Set the haystack value via a hidden input
+      // ...set the haystack value via a hidden input
       $search_form .= sprintf(
         '<input type="hidden" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s" value="on">',
         $haystacks[0], $haystacks[0]
       );
     } else {
-      // ... Else add a checkbox per haystack
+      // ... else, add a checkbox per haystack
       $checkbox_template = <<<END
       <input type="checkbox" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s" checked>
       <label for="hrhs-search-haystacks-%s">%s</label>
@@ -150,11 +150,11 @@ class HRHS_Search {
     return $search_form;
   }
   
-  public function display_hrhs_search_results( $search_results ) {
+  public function display_hrhs_search_results( $original_search_results ) {
     // Check which search page this is
     if ( ! $this->is_current_search_page() ) {
       // Not my page, bail and return without modification
-      return $search_results;
+      return $original_search_results;
     }
     
     // Check to see if there is a search to perform
@@ -179,6 +179,7 @@ class HRHS_Search {
       // ) );
 
       // Iterate across the search types and get the results
+      $search_results = '';
       foreach ( $haystacks as $haystack ) {
         // Get the fields for this haystack (post type)
         $fields = array_key_exists( $haystack, $this->search_types_fields ) ? $this->search_types_fields[ $haystack ] : array();
@@ -229,23 +230,13 @@ class HRHS_Search {
           }
           // Close the table
           $search_results .= '</tbody></table>';
-          ?>
-          
-              
-                
-              
-              <tr>
-                <td></td>
-              </tr>
-            
-          <?php
         }
         $search_results .= sprintf( '<p>Found %d matches for %s posts</p>', count( $matching_posts ), $haystack );
       }
     }
 
     // Return the search results
-    return $search_results;
+    return '' !== $search_results ? $search_results : $original_search_results;
   }
 
   /* ******************
