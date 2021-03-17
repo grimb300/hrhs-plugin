@@ -113,7 +113,7 @@ class HRHS_Search {
 
     // Get the post types (haystacks) this search page will be searching through
     $haystacks = array_keys( $this->search_types_fields );
-    hrhs_debug( 'There are ' .count( $haystacks ) . ' post types to search' );
+    // hrhs_debug( 'There are ' .count( $haystacks ) . ' post types to search' );
     // If there is only one post type...
     if ( count( $haystacks ) === 1 ) {
       // ...set the haystack value via a hidden input
@@ -181,23 +181,27 @@ class HRHS_Search {
       // Iterate across the search types and get the results
       $search_results = '';
       foreach ( $haystacks as $haystack ) {
-        // Get the fields for this haystack (post type)
+        // Get the search and display fields for this haystack (post type)
         $fields = array_key_exists( $haystack, $this->search_types_fields ) ? $this->search_types_fields[ $haystack ] : array();
+        $search_fields = array_filter( $fields, function( $field ) {
+          return  ( 'all' === $field[ 'search' ] ) ||
+                  ( is_user_logged_in() && ( 'member' === $field[ 'search' ] ) );
+        } );
+        $display_fields = array_filter( $fields, function( $field ) {
+          return  ( 'all' === $field[ 'display' ] ) ||
+                  ( is_user_logged_in() && ( 'member' === $field[ 'display' ] ) );
+        } );
 
         // Build a meta query for this haystack
         $meta_query = array(
           'relation' => 'OR', // Needle must match at least one field
         );
-        foreach( $fields as $field ) {
-          // hrhs_debug( 'Searching field ' . $field[ 'slug' ] );
-          // hrhs_debug( $field );
-          if ( 'none' !== $field[ 'searchable' ] ) {
-            $meta_query[ $field[ 'slug' ] . '_clause' ] = array(
-              'key' => $field[ 'slug' ],
-              'value' => $needle,   // NOTE: Using LIKE will automagically add
-              'compare' => 'LIKE',  //       SQL wildcards (%) around the value
-            );
-          }
+        foreach( $search_fields as $field ) {
+          $meta_query[ $field[ 'slug' ] . '_clause' ] = array(
+            'key' => $field[ 'slug' ],
+            'value' => $needle,   // NOTE: Using LIKE will automagically add
+            'compare' => 'LIKE',  //       SQL wildcards (%) around the value
+          );
         }
         // hrhs_debug( 'Meta query:' );
         // hrhs_debug( $meta_query );
@@ -207,15 +211,15 @@ class HRHS_Search {
           'post_type' => $haystack, // Search only the current haystack's post type
           'meta_query' => $meta_query,
         );
-        hrhs_debug( 'Get Posts query:' );
-        hrhs_debug( $get_posts_query );
+        // hrhs_debug( 'Get Posts query:' );
+        // hrhs_debug( $get_posts_query );
         $matching_posts = get_posts( $get_posts_query );
         if ( count( $matching_posts ) > 0 ) {
           // Start the table
           $search_results .= '<table><tbody>';
           // Build the table heading
           $search_results .= '<tr>';
-          foreach( $fields as $field ) {
+          foreach( $display_fields as $field ) {
             $search_results .= '<th scope="col">' . $field[ 'label' ] . '</th>';
           }
           $search_results .= '</tr>';
@@ -223,7 +227,7 @@ class HRHS_Search {
           foreach( $matching_posts as $post_id ) {
             $search_results .= '<tr>';
             $meta_data = get_post_meta( $post_id );
-            foreach( $fields as $field ) {
+            foreach( $display_fields as $field ) {
               $search_results .= sprintf( '<td>%s</td>', array_key_exists( $field[ 'slug' ], $meta_data ) ? $meta_data[ $field[ 'slug' ] ][ 0 ] : '' );
             }
             $search_results .= '</tr>';
