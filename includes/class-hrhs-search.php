@@ -126,6 +126,13 @@ class HRHS_Search {
     </form>
     END;
 
+    // Indicate if the user is logged in
+    if ( is_user_logged_in() ) {
+      $search_form .= '<h4>User is logged in</h4>';
+    } else {
+      $search_form .= '<h4>User is NOT logged in</h4>';
+    }
+
     return $search_form;
   }
   

@@ -135,6 +135,23 @@ class HRHS_Plugin {
     }
     // Then flush the rewrite rules for them to take effect
     flush_rewrite_rules();
+
+    // Create the default HRHS member user (if necessary)
+    if ( ! get_user_by( 'login', 'HRHS-MEMBER' ) ) {
+      // hrhs_debug( 'User HRHS-MEMBER does not exist, creating...' );
+      wp_insert_user( array(
+        'user_login' => 'HRHS-MEMBER',
+        'user_pass' => 'STORIES',
+        'user_email' => 'grimb300@hotmail.com', // TODO: Default hrhs email?
+        'first_name' => 'HRHS Member',
+        'display_name' => 'HRHS Member',
+        'nickname' => 'HRHS Member',
+        'role' => 'subscriber',
+        'show_admin_bar_front' => true
+      ) );
+    } else {
+      // hrhs_debug( 'User HRHS-MEMBER already exists, do nothing' );
+    }
   }
 
   // Plugin deactivation
