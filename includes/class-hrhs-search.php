@@ -54,9 +54,11 @@ class HRHS_Search {
     add_action( 'init', array( $this, 'hrhs_search_page_rewrite_rules' ) );
     add_filter( 'query_vars', array( $this, 'hrhs_search_page_query_vars' ) );
     add_filter( 'template_include', array( $this, 'hrhs_search_page_template_include' ), 50 );
+    add_filter( 'hrhs_search_login_info', array( $this, 'display_hrhs_search_login_info' ) );
     add_filter( 'hrhs_search_title', array( $this, 'display_hrhs_search_title' ) );
     add_filter( 'hrhs_search_form', array( $this, 'display_hrhs_search_form' ) );
     add_filter( 'hrhs_search_results', array( $this, 'display_hrhs_search_results' ) );
+    add_action( 'wp_login_failed', array( $this, 'hrhs_search_page_handle_failed_login' ) );
   }
 
   public function hrhs_search_page_rewrite_rules() {
@@ -81,9 +83,58 @@ class HRHS_Search {
     return $template;
   }
 
+  public function hrhs_search_page_handle_failed_login( $username ) {
+    $referer = $_SERVER[ 'HTTP_REFERER' ];
+    // If there's a valid referer and it is this page...
+    if ( ! empty( $referer ) && strstr( $referer , $this->slug ) ) {
+      // ...redirect back to the search page, adding a param to indicate the login failed
+      wp_redirect( $referer . '?login=failed' );
+      exit;
+   }
+  }
+
   /* ************************
    * Display filter functions
    * ************************/
+
+  public function display_hrhs_search_login_info( $login_info ) {
+    // Check which search page this is
+    if ( ! $this->is_current_search_page() ) {
+      // Not my page, bail and return without modification
+      return $login_info;
+    }
+
+    // Are we logged in
+    if ( is_user_logged_in() ) {
+      // Create welcome message
+      $current_user = wp_get_current_user();
+      $display_name = $current_user->user_login;
+      if ( ! empty( $current_user->first_name ) ) {
+        $display_name = $current_user->first_name;
+      } elseif ( ! empty( $current_user->last_name ) ) {
+        $display_name = $current_user->last_name;
+      }
+      $login_info = '<h4>Welcome, ' . $display_name . '!</h4>';
+      // Add a logout link
+      $login_info .= wp_loginout( $_SERVER[ 'REQUEST_URI' ], false );
+    } else {
+      // Create a not logged in message
+      $login_info =  '<h4>User is NOT logged in</h4>';
+      // Add a login form
+      $login_info .= wp_login_form( array(
+        'echo' => false,
+        'value_username' => 'HRHS-MEMBER',
+        'value_remember' => true,
+        'redirect' => $_SERVER[ 'REQUEST_URI' ]
+      ) );
+      // If the previous login attempt failed, add an appropriate message
+      if ( ! empty( $_REQUEST[ 'login' ] ) && 'failed' === $_REQUEST[ 'login' ] ) {
+        $login_info .= '<p>Incorrect password, try again</p>';
+      }
+    }
+    
+    return $login_info;
+  }
 
   public function display_hrhs_search_title( $title ) {
     // Check which search page this is

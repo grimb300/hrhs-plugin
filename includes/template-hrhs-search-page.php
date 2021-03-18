@@ -9,24 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 get_header();
 
-if ( is_user_logged_in() ) {
-  $current_user = wp_get_current_user();
-  $display_name = $current_user->user_login;
-  if ( ! empty( $current_user->first_name ) ) {
-    $display_name = $current_user->first_name;
-  } elseif ( ! empty( $current_user->last_name ) ) {
-    $display_name = $current_user->last_name;
-  }
-  echo '<h4>Welcome, ' . $display_name . '!</h4>';
-  wp_loginout( $_SERVER[ 'REQUEST_URI' ] );
-} else {
-  echo '<h4>User is NOT logged in</h4>';
-  wp_login_form( array(
-    'value_username' => 'HRHS-MEMBER',
-    'value_remember' => true,
-    'redirect' => $_SERVER[ 'REQUEST_URI' ]
-  ) );
-}
+echo apply_filters( 'hrhs_search_login_info', '<h4>Login Info Goes Here</h4>' );
 
 ?>
 
