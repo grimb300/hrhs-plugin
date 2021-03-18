@@ -26,9 +26,10 @@ class HRHS_Plugin {
         'slug' => 'name_entry',
         'singular_name' => 'Name Entry',
         'plural_name' => 'Name Entries',
+        // TODO: Verify which fields should be searchable, currently following what was done on old site
         'fields' => array(
-          array( 'label' => 'Surname',     'slug' => 'surname',   'search' => 'all',    'display' => 'all' ),
-          array( 'label' => 'Given Name',  'slug' => 'givenname', 'search' => 'member', 'display' => 'all' ),
+          array( 'label' => 'Surname',     'slug' => 'surname',   'search' => 'all',    'display' => 'all' ), // Order first
+          array( 'label' => 'Given Name',  'slug' => 'givenname', 'search' => 'member', 'display' => 'all' ), // Order second
           array( 'label' => 'Birth',       'slug' => 'birth',     'search' => 'none',   'display' => 'member' ),
           array( 'label' => 'Death',       'slug' => 'death',     'search' => 'none',   'display' => 'member' ),
           array( 'label' => 'Marriage',    'slug' => 'marriage',  'search' => 'none',   'display' => 'member' ),
@@ -41,39 +42,42 @@ class HRHS_Plugin {
         'slug' => 'news_entry',
         'singular_name' => 'News Entry',
         'plural_name' => 'News Entries',
+        // TODO: Verify which fields should be searchable, currently following what was done on old site
         'fields' => array(
           array( 'label' => 'Year',       'slug' => 'year',  'search' => 'member', 'display' => 'member' ),
-          array( 'label' => 'Newspaper',  'slug' => 'news',  'search' => 'member', 'display' => 'member' ),
-          array( 'label' => 'Pages',      'slug' => 'pages', 'search' => 'member', 'display' => 'member' ),
-          array( 'label' => 'Sort Order', 'slug' => 'sort',  'search' => 'none',   'display' => 'none' ),
-       ),
+          array( 'label' => 'Newspaper',  'slug' => 'news',  'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Pages',      'slug' => 'pages', 'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Sort Order', 'slug' => 'sort',  'search' => 'none',   'display' => 'none' ), // Order first
+        ),
       ),
       'place_info' => array(
         'slug' => 'place_entry',
         'singular_name' => 'Place Entry',
         'plural_name' => 'Place Entries',
+        // TODO: Verify which fields should be searchable, currently following what was done on old site
         'fields' => array(
-          array( 'label' => 'Placename',  'slug' => 'placename',  'search' => 'member', 'display' => 'member' ),
-          array( 'label' => 'Othername',  'slug' => 'othername',  'search' => 'member', 'display' => 'member' ),
-          array( 'label' => 'Location',   'slug' => 'location',   'search' => 'member', 'display' => 'member' ),
-          array( 'label' => 'Remarks',    'slug' => 'remarks',    'search' => 'member', 'display' => 'member' ),
-          array( 'label' => 'Infosource', 'slug' => 'infosource', 'search' => 'member', 'display' => 'member' ),
-          array( 'label' => 'Designator', 'slug' => 'designator', 'search' => 'member', 'display' => 'member' ),
+          array( 'label' => 'Placename',  'slug' => 'placename',  'search' => 'member', 'display' => 'member' ), // Order first
+          array( 'label' => 'Othername',  'slug' => 'othername',  'search' => 'none',   'display' => 'member' ), // Order second
+          array( 'label' => 'Location',   'slug' => 'location',   'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Remarks',    'slug' => 'remarks',    'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Infosource', 'slug' => 'infosource', 'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Designator', 'slug' => 'designator', 'search' => 'none',   'display' => 'member' ),
         ),
       ),
       'obit_info' => array(
         'slug' => 'obit_entry',
         'singular_name' => 'Obituary Entry',
         'plural_name' => 'Obituary Entries',
+        // TODO: Verify which fields should be searchable, currently following what was done on old site
         'fields' => array(
-          array( 'label' => 'Surname',       'slug' => 'surname',      'search' => 'all',    'display' => 'all' ),
-          array( 'label' => 'Given Name',    'slug' => 'givenname',    'search' => 'member', 'display' => 'all' ),
-          array( 'label' => 'Date of Birth', 'slug' => 'birth',        'search' => 'member', 'display' => 'all' ),
-          array( 'label' => 'Date of Death', 'slug' => 'death',        'search' => 'member', 'display' => 'all' ),
-          array( 'label' => 'Parents',       'slug' => 'parents',      'search' => 'member', 'display' => 'all' ),
-          array( 'label' => 'Spouse',        'slug' => 'marriage',     'search' => 'member', 'display' => 'all' ),
-          array( 'label' => 'Age',           'slug' => 'age',          'search' => 'member', 'display' => 'all' ),
-          array( 'label' => 'Obit Location', 'slug' => 'obitlocation', 'search' => 'member', 'display' => 'all' ),
+          array( 'label' => 'Surname',       'slug' => 'surname',      'search' => 'all',    'display' => 'all' ), // Order first
+          array( 'label' => 'Given Name',    'slug' => 'givenname',    'search' => 'member', 'display' => 'all' ), // Order second
+          array( 'label' => 'Date of Birth', 'slug' => 'birth',        'search' => 'none',   'display' => 'all' ),
+          array( 'label' => 'Date of Death', 'slug' => 'death',        'search' => 'none',   'display' => 'all' ),
+          array( 'label' => 'Parents',       'slug' => 'parents',      'search' => 'none',   'display' => 'all' ),
+          array( 'label' => 'Spouse',        'slug' => 'marriage',     'search' => 'none',   'display' => 'all' ),
+          array( 'label' => 'Age',           'slug' => 'age',          'search' => 'none',   'display' => 'all' ),
+          array( 'label' => 'Obit Location', 'slug' => 'obitlocation', 'search' => 'none',   'display' => 'all' ),
         ),
       ),
     );
