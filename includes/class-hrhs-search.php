@@ -102,14 +102,20 @@ class HRHS_Search {
       // Not my page, bail and return without modification
       return $search_form;
     }
+
+    // Get the search params from a previous search, if it exists
+    $search_params = array_key_exists( 'hrhs-search', $_REQUEST ) ? stripslashes_deep( $_REQUEST[ 'hrhs-search' ] ) : array();
     
-    // Open the form and addd the search text box
-    $search_form = <<<END
-    <form id="hrhs-search" role="search" class="widget widget_search" action="" method="post">
-    <!-- <form id="hrhs-search" role="search" class="widget widget_search" action="" method="get"> -->
-      <label for="hrhs-search-needle">Search...</label>
-      <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle">
-    END;
+    // Open the form
+    $search_form = '<form id="hrhs-search" role="search" class="widget widget_search" action="" method="post">';
+    // $search_form = '<form id="hrhs-search" role="search" class="widget widget_search" action="" method="get">';
+
+    // Add the search text box
+    $search_form .= '<label for="hrhs-search-needle">Search...</label>';
+    $search_form .= sprintf(
+      '<input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="%s">',
+      empty( $search_params[ 'needle' ] ) ? '' : $search_params[ 'needle' ]
+    );
 
     // Get the post types (haystacks) this search page will be searching through
     $haystacks = array_keys( $this->search_types_fields );
@@ -124,13 +130,14 @@ class HRHS_Search {
     } else {
       // ... else, add a checkbox per haystack
       $checkbox_template = <<<END
-      <input type="checkbox" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s" checked>
+      <input type="checkbox" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s"%s>
       <label for="hrhs-search-haystacks-%s">%s</label>
       END;
       foreach ( $haystacks as $haystack ) {
         // Get the label for this haystack, "Unknown" if it doesn't exist
         $label = array_key_exists( $haystack, $this->search_types_label ) ? $this->search_types_label[ $haystack ] : 'Unknown';
-        $search_form .= sprintf( $checkbox_template, $haystack, $haystack, $haystack, $label );
+        $checked = array_key_exists( 'haystacks', $search_params ) && empty( $search_params[ 'haystacks' ][ $haystack ] ) ? '' : ' checked';
+        $search_form .= sprintf( $checkbox_template, $haystack, $haystack, $checked, $haystack, $label );
       }
     }
 
@@ -156,18 +163,18 @@ class HRHS_Search {
     // Check to see if there is a search to perform
     if ( array_key_exists( 'hrhs-search', $_REQUEST ) ) {
       // Grab the search string and the data base(s) to search
-      $post_data = stripslashes_deep( $_REQUEST[ 'hrhs-search' ] );
-      if ( empty( $post_data[ 'needle' ] ) ) {
+      $search_params = stripslashes_deep( $_REQUEST[ 'hrhs-search' ] );
+      if ( empty( $search_params[ 'needle' ] ) ) {
         // Return warning message
         return '<h3>Empty search string</h3>';
       }
-      if ( empty( $post_data[ 'haystacks' ] ) ) {
+      if ( empty( $search_params[ 'haystacks' ] ) ) {
         // Return warning message
         return '<h3>Must choose at least one database to search</h3>';
       }
       // TODO: Do I need to sanitize further since the needle is used in a MySQL query?
-      $needle = strtolower( filter_var( trim( $post_data[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
-      $haystacks = array_keys( $post_data[ 'haystacks' ] );
+      $needle = strtolower( filter_var( trim( $search_params[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
+      $haystacks = array_keys( $search_params[ 'haystacks' ] );
       // hrhs_debug( 'Searching...' );
       // hrhs_debug( array(
       //   'needle' => $needle,
