@@ -23,7 +23,8 @@ if ( is_user_logged_in() ) {
   echo '<h4>User is NOT logged in</h4>';
   wp_login_form( array(
     'value_username' => 'HRHS-MEMBER',
-    'value_remember' => true
+    'value_remember' => true,
+    'redirect' => $_SERVER[ 'REQUEST_URI' ]
   ) );
 }
 

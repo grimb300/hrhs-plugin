@@ -105,7 +105,20 @@ class HRHS_Search {
 
     // Get the search params from a previous search, if it exists
     $search_params = array_key_exists( 'hrhs-search', $_REQUEST ) ? stripslashes_deep( $_REQUEST[ 'hrhs-search' ] ) : array();
-    
+
+    // Get the types and fields this user can search on
+    $searchable_haystacks = $this->get_search_fields();
+    hrhs_debug( 'Haystacks searchable by this user:' );
+    foreach ( $searchable_haystacks as $haystack => $fields ) {
+      $num_fields = count( $fields );
+      hrhs_debug( sprintf( 'Haystack %s has %d search fields', $haystack, $num_fields ) );
+    }
+
+    // If no searchable haystacks, return message
+    if ( empty( $searchable_haystacks ) ) {
+      return '<h3>This search is reserved for HRHS Members</h3>';
+    }
+   
     // Open the form
     $search_form = '<form id="hrhs-search" role="search" class="widget widget_search" action="" method="post">';
     // $search_form = '<form id="hrhs-search" role="search" class="widget widget_search" action="" method="get">';
@@ -115,7 +128,7 @@ class HRHS_Search {
     $search_form .= sprintf(
       '<input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="%s">',
       empty( $search_params[ 'needle' ] ) ? '' : $search_params[ 'needle' ]
-    );
+    );  
 
     // Get the post types (haystacks) this search page will be searching through
     $haystacks = array_keys( $this->search_types_fields );
@@ -130,14 +143,23 @@ class HRHS_Search {
     } else {
       // ... else, add a checkbox per haystack
       $checkbox_template = <<<END
-      <input type="checkbox" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s"%s>
+      <input type="checkbox" name="hrhs-search[haystacks][%s]" id="hrhs-search-haystacks-%s"%s%s>
       <label for="hrhs-search-haystacks-%s">%s</label>
       END;
       foreach ( $haystacks as $haystack ) {
+        // If this haystack isn't searchable, disable it
+        $disabled = array_key_exists( $haystack, $searchable_haystacks ) ? '' : ' disabled';
+        // Make the checkbox "checked" unless it wasn't checked in the previous search
+        // or if it is disabled
+        $checked =  ( array_key_exists( 'haystacks', $search_params ) &&
+        empty( $search_params[ 'haystacks' ][ $haystack ] ) ) ||
+        ! empty( $disabled ) ? '' : ' checked';
         // Get the label for this haystack, "Unknown" if it doesn't exist
         $label = array_key_exists( $haystack, $this->search_types_label ) ? $this->search_types_label[ $haystack ] : 'Unknown';
-        $checked = array_key_exists( 'haystacks', $search_params ) && empty( $search_params[ 'haystacks' ][ $haystack ] ) ? '' : ' checked';
-        $search_form .= sprintf( $checkbox_template, $haystack, $haystack, $checked, $haystack, $label );
+        // If this haystack is disabled, mark it "members only"
+        $label .= empty( $disabled ) ? '' : ' (members only)';
+        // Add to the search form
+        $search_form .= sprintf( $checkbox_template, $haystack, $haystack, $checked, $disabled, $haystack, $label );
       }
     }
 
@@ -259,6 +281,47 @@ class HRHS_Search {
   // By default, all HRHS_Search pages use the same template and same filters, check against the slug of the current page
   private function is_current_search_page() {
     return boolval( get_query_var( $this->slug, false ) );
+  }
+
+  // Get the search fields based on the user status
+  public function get_search_fields() {
+    return $this->filter_types_fields_by_user_status( 'search' );
+  }
+
+  // Get the display fields based on the user status
+  public function get_display_fields() {
+    return $this->filter_types_fields_by_user_status( 'display' );
+  }
+  
+  // Get the fields based on the type and user status (used by the two functions above)
+  public function filter_types_fields_by_user_status( $filter_attribute = 'none' ) {
+    // If no filter attribute, return the entire array
+    if ( 'none' === $filter_attribute ) {
+      return $this->search_types_fields;
+    }
+
+    // Iterate across all types filtering the fields
+    $filtered_fields = array();
+    foreach ( $this->search_types_fields as $type => $fields ) {
+      $filtered_fields[ $type ] = array_filter(
+        $fields,
+        // function... use... pulls $filter_attribute into the filter function scope
+        function( $field ) use ( $filter_attribute ) {
+          return  ( 'all' === $field[ $filter_attribute ] ) ||
+                  ( is_user_logged_in() && ( 'member' === $field[ $filter_attribute ] ) );
+        }
+      );
+    }
+
+    // Filter out the types that don't have any fields left
+    $filtered_types = array_filter(
+      $filtered_fields,
+      function( $type ) {
+        return count( $type ) > 0;
+      }
+    );
+
+    return $filtered_types;
   }
 
 }
