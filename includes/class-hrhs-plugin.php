@@ -141,12 +141,13 @@ class HRHS_Plugin {
     flush_rewrite_rules();
 
     // Create the default HRHS member user (if necessary)
+    // NOTE: The email MUST be unique to all other users
     if ( ! get_user_by( 'login', 'HRHS-MEMBER' ) ) {
       // hrhs_debug( 'User HRHS-MEMBER does not exist, creating...' );
       wp_insert_user( array(
         'user_login' => 'HRHS-MEMBER',
         'user_pass' => 'STORIES',
-        'user_email' => 'grimb300@hotmail.com', // TODO: Default hrhs email?
+        'user_email' => 'test@test.com', // TODO: Default hrhs email?
         'first_name' => 'HRHS Member',
         'display_name' => 'HRHS Member',
         'nickname' => 'HRHS Member',
