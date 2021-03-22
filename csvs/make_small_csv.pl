@@ -43,6 +43,7 @@ if ( ! $opt_m ) {
 
 # Assume the first line is the heading, print it to the output
 my $header = <INPUT_FH>;
+$header = &clean_line_ending( $header );
 if ( $opt_r ) {
   chomp $header;
   $header .= ",\"RandID\"\n";
@@ -68,20 +69,22 @@ while (<INPUT_FH>) {
       print OUTPUT_FH $header if ( ! $opt_m );
     }
     # Then print the current line
+    my $line = &clean_line_ending( $_ );
     if ( $opt_r ) {
-      chomp $_;
-      $_ .= sprintf( ",\"%d\"\n", int(rand(1000000000000) ) );
+      chomp $line;
+      $line .= sprintf( ",\"%d\"\n", int(rand(1000000000000) ) );
     }
-    print OUTPUT_FH $_ if ( !$opt_m );
+    print OUTPUT_FH $line if ( !$opt_m );
     $kept_lines += 1;
   }
   # ...Else, decide if we're going to print it, if we're picking random lines
   elsif ( rand($NUMBER_TO_SKIP) < 1 ) {
+    my $line = &clean_line_ending( $_ );
     if ( $opt_r ) {
-      chomp $_;
-      $_ .= sprintf( ",\"%d\"\n", int(rand(1000000000000) ) );
+      chomp $line;
+      $line .= sprintf( ",\"%d\"\n", int(rand(1000000000000) ) );
     }
-    print OUTPUT_FH $_ if ( ! $opt_m );
+    print OUTPUT_FH $line if ( ! $opt_m );
     $kept_lines += 1;
     # print "kept_lines is now $kept_lines\n";
   }
@@ -94,6 +97,19 @@ printf( "Input file had %d lines, %d were kept\n", $total_lines, $kept_lines );
 # Close the file handles
 close INPUT_FH;
 close OUTPUT_FH;
+
+# Detect if line is using a non-unix style line ending and replace with \n
+sub clean_line_ending {
+  my $line = $_[0];
+
+  # Strip off any possible type of line ending
+  $line =~ s/\015\012//g; # DOS
+  $line =~ s/\012//g;     # Unix
+  $line =~ s/\015//g;     # Mac
+
+  # Return the cleaned line with a unix line ending
+  return $line . "\n";
+}
 
 sub create_output_filename {
   # my $input_file = pop(@_);
