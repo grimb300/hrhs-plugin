@@ -64,22 +64,22 @@ class HRHS_Plugin {
           array( 'label' => 'Designator', 'slug' => 'designator', 'search' => 'none',   'display' => 'member' ),
         ),
       ),
-      'obit_info' => array(
-        'slug' => 'obit_entry',
-        'singular_name' => 'Obituary Entry',
-        'plural_name' => 'Obituary Entries',
-        // TODO: Verify which fields should be searchable, currently following what was done on old site
-        'fields' => array(
-          array( 'label' => 'Surname',       'slug' => 'surname',      'search' => 'all',    'display' => 'all' ), // Order first
-          array( 'label' => 'Given Name',    'slug' => 'givenname',    'search' => 'member', 'display' => 'all' ), // Order second
-          array( 'label' => 'Date of Birth', 'slug' => 'birth',        'search' => 'none',   'display' => 'all' ),
-          array( 'label' => 'Date of Death', 'slug' => 'death',        'search' => 'none',   'display' => 'all' ),
-          array( 'label' => 'Parents',       'slug' => 'parents',      'search' => 'none',   'display' => 'all' ),
-          array( 'label' => 'Spouse',        'slug' => 'marriage',     'search' => 'none',   'display' => 'all' ),
-          array( 'label' => 'Age',           'slug' => 'age',          'search' => 'none',   'display' => 'all' ),
-          array( 'label' => 'Obit Location', 'slug' => 'obitlocation', 'search' => 'none',   'display' => 'all' ),
-        ),
-      ),
+      // 'obit_info' => array(
+      //   'slug' => 'obit_entry',
+      //   'singular_name' => 'Obituary Entry',
+      //   'plural_name' => 'Obituary Entries',
+      //   // TODO: Verify which fields should be searchable, currently following what was done on old site
+      //   'fields' => array(
+      //     array( 'label' => 'Surname',       'slug' => 'surname',      'search' => 'all',    'display' => 'all' ), // Order first
+      //     array( 'label' => 'Given Name',    'slug' => 'givenname',    'search' => 'member', 'display' => 'all' ), // Order second
+      //     array( 'label' => 'Date of Birth', 'slug' => 'birth',        'search' => 'none',   'display' => 'all' ),
+      //     array( 'label' => 'Date of Death', 'slug' => 'death',        'search' => 'none',   'display' => 'all' ),
+      //     array( 'label' => 'Parents',       'slug' => 'parents',      'search' => 'none',   'display' => 'all' ),
+      //     array( 'label' => 'Spouse',        'slug' => 'marriage',     'search' => 'none',   'display' => 'all' ),
+      //     array( 'label' => 'Age',           'slug' => 'age',          'search' => 'none',   'display' => 'all' ),
+      //     array( 'label' => 'Obit Location', 'slug' => 'obitlocation', 'search' => 'none',   'display' => 'all' ),
+      //   ),
+      // ),
     );
 
     // Just in case instantiate_post_types() doesn't instantiate any post types
