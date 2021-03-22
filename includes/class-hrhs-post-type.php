@@ -194,9 +194,9 @@ class HRHS_Post_Type {
 
     if ( is_singular() ) {
       if ( $this->slug === $post->post_type ) {
-        return '<h3>This is a ' . $this->slug . ' post type</h3>' . $content;
+        // return '<h3>This is a ' . $this->slug . ' post type</h3>' . $content;
       } else {
-        return '<h3>This is not a ' . $this->slug . ' post type</h3>' . $content;
+        // return '<h3>This is not a ' . $this->slug . ' post type</h3>' . $content;
       }
     }
     return $content;
