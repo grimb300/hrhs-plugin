@@ -54,7 +54,7 @@ my $total_lines = 0;
 my $kept_lines = 0;
 while (<INPUT_FH>) {
   # print "Looking at a line\n";
-  # If we're breaking the larger file into smaller ones (opt_b)
+  # If we're breaking the larger file into smaller ones (opt_b)...
   if ( $opt_b ) {
     # Check to see if we're at a breakpoint
     if ( $total_lines % $NUMBER_TO_SKIP == 0 ) {
@@ -75,8 +75,8 @@ while (<INPUT_FH>) {
     print OUTPUT_FH $_ if ( !$opt_m );
     $kept_lines += 1;
   }
-  # Decide if we're going to print it, if we're picking random lines
-  if ( rand($NUMBER_TO_SKIP) < 1 ) {
+  # ...Else, decide if we're going to print it, if we're picking random lines
+  elsif ( rand($NUMBER_TO_SKIP) < 1 ) {
     if ( $opt_r ) {
       chomp $_;
       $_ .= sprintf( ",\"%d\"\n", int(rand(1000000000000) ) );
