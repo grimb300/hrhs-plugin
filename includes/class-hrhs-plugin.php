@@ -88,6 +88,8 @@ class HRHS_Plugin {
     $this->load_dependencies();
     $this->instantiate_post_types();
     $this->instantiate_search_page();
+    add_action( 'plugins_loaded', array( $this, 'register_elementor_widgets' ) );
+    // $this->register_elementor_widgets();
   }
 
   // Load dependencies
@@ -118,6 +120,35 @@ class HRHS_Plugin {
       'search_types_fields' => $search_types_fields,
       'search_types_label' => $search_types_label
     ) );
+  }
+
+  // Register the HRHS specific Elementor widgets
+  public function register_elementor_widgets() {
+    // Required versions
+    $MINIMUM_ELEMENTOR_VERSION = '2.0.0';
+    $MINIMUM_PHP_VERSION = '7.0';
+ 
+    // Check if Elementor insatlled and activated
+    if ( ! did_action( 'elementor/loaded' ) ) {
+      hrhs_debug( 'HRHS_Elementor_Widgets requires Elementor to be installed and activated.' );
+      return;
+    }
+
+    // Check for required Elementor version
+    if ( ! version_compare( ELEMENTOR_VERSION, $MINIMUM_ELEMENTOR_VERSION, '>=' ) ) {
+      hrhs_debug( sprintf( 'HRHS_Elementor_Widgets requires Elementor version %s or greater.', $MINIMUM_ELEMENTOR_VERSION ) );
+      return;
+    }
+
+    // Check for required PHP version
+    if ( version_compare( PHP_VERSION, $MINIMUM_PHP_VERSION, '<' ) ) {
+      hrhs_debug( sprintf( 'HRHS_Elementor_Widgets requires PHP version %s or greater.', $MINIMUM_PHP_VERSION ) );
+      return;
+    }
+
+    // Once we get here, We have passed all validation checks so we can safely include our widgets.
+    hrhs_debug( 'HRHS_Elementor_Widgets has met all of the requirements, loading widgets' );
+    require_once HRHS_PLUGIN_PATH . 'elementor/class-hrhs-elementor-widgets.php';
   }
   
   // Run

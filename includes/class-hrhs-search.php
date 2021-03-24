@@ -59,6 +59,20 @@ class HRHS_Search {
     add_filter( 'hrhs_search_form', array( $this, 'display_hrhs_search_form' ) );
     add_filter( 'hrhs_search_results', array( $this, 'display_hrhs_search_results' ) );
     add_action( 'wp_login_failed', array( $this, 'hrhs_search_page_handle_failed_login' ) );
+    add_action( 'wp_enqueue_scripts', array( $this, 'hrhs_serach_enqueue_scripts') );
+  }
+
+  public function hrhs_serach_enqueue_scripts() {
+    hrhs_debug( 'Inside hrhs_serach_enqueue_scripts' );
+    // Check which search page this is
+    if ( ! $this->is_current_search_page() ) {
+      // Not my page, bail and return without modification
+      // return;
+    }
+
+    // Get the current version of the CSS file
+    $hrhs_search_styles_css_ver = date( 'ymd-Gis', filemtime( HRHS_PLUGIN_PATH . 'css/hrhs-search-styles.css' ) );
+    wp_enqueue_style( 'hrhs_search_styles_css', HRHS_PLUGIN_URL . 'css/hrhs-search-styles.css', array(), $hrhs_search_styles_css_ver );
   }
 
   public function hrhs_search_page_rewrite_rules() {
@@ -104,6 +118,9 @@ class HRHS_Search {
       return $login_info;
     }
 
+    // Open a div to contain the member login form
+    $login_info = '<div id="hrhs_member_login_info">';
+
     // Are we logged in
     if ( is_user_logged_in() ) {
       // Create welcome message
@@ -114,24 +131,42 @@ class HRHS_Search {
       } elseif ( ! empty( $current_user->last_name ) ) {
         $display_name = $current_user->last_name;
       }
-      $login_info = '<h4>Welcome, ' . $display_name . '!</h4>';
+      $login_info .= '<div id="hrhs_member_greeting">';
+      $login_info .= '<h4>Welcome, ' . $display_name . '!</h4>';
+      $login_info .= '</div>';
       // Add a logout link
       $login_info .= wp_loginout( $_SERVER[ 'REQUEST_URI' ], false );
     } else {
       // Create a not logged in message
-      $login_info =  '<h4>User is NOT logged in</h4>';
+      $login_info .= '<div id="hrhs_member_greeting">';
+      $login_info .= '<h4>Member Access</h4>';
+      $login_info .= '<p>Rocktown History members provide sustaining funds for the collection, preservation, and research of genealogy and local history resources. Member benefits include expanded online searches of Names and Historic Locations.</p>';
+      $login_info .= '</div>';
       // Add a login form
       $login_info .= wp_login_form( array(
         'echo' => false,
+        'redirect' => $_SERVER[ 'REQUEST_URI' ],
+        'form_id' => 'hrhs_member_login_form',
+        'label_username' => '',
+        'label_password' => 'Password is case sensitive. Please contact the Administrator with access questions.',
+        // 'label_remember' => '',
+        'label_log_in' => 'Log In',
+        'id_username' => 'hrhs_member_username',
+        'id_password' => 'hrhs_member_password',
+        // 'id_remember' => 'hrhs_member_remember',
+        'id_submit' => 'hrhs_member_submit',
+        'remember' => false,
         'value_username' => 'HRHS-MEMBER',
-        'value_remember' => true,
-        'redirect' => $_SERVER[ 'REQUEST_URI' ]
+        // 'value_remember' => true,
       ) );
       // If the previous login attempt failed, add an appropriate message
       if ( ! empty( $_REQUEST[ 'login' ] ) && 'failed' === $_REQUEST[ 'login' ] ) {
         $login_info .= '<p>Incorrect password, try again</p>';
       }
     }
+
+    // Close the surrounding div
+    $login_info .= '</div>';
     
     return $login_info;
   }
