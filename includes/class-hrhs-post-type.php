@@ -1,5 +1,7 @@
 <?php
 
+namespace HRHSPlugin;
+
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 class HRHS_Post_Type {

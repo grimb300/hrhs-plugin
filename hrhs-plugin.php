@@ -14,6 +14,8 @@
  * Text Domain:       hrhs-plugin
  */
 
+namespace HRHSPlugin;
+
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 /**

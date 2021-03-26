@@ -1,5 +1,7 @@
 <?php
 
+namespace HRHSPlugin;
+
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 class HRHS_Plugin {
@@ -92,12 +94,18 @@ class HRHS_Plugin {
     // $this->register_elementor_widgets();
     add_action( 'wp_authenticate', array( $this, 'hrhs_handle_empty_login' ), 1, 2 );
     add_action( 'wp_login_failed', array( $this, 'hrhs_handle_failed_login' ) );
+
+    // Initialize the options
+    // NOTE: Using options in WordPress in this way feels wrong
+    $options_obj = new HRHS_Options();
+    $options_obj->set( array( 'post_type_defs' => $this->post_type_defs ) );
   }
 
   // Load dependencies
   private function load_dependencies() {
     require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-post-type.php';
     require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-search.php';
+    require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-options.php';
   }
 
   // Instantiate the post types

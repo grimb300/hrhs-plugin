@@ -6,6 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 use Elementor\Widget_Base;
 use Elementor\Controls_Manager;
+use function HRHSPlugin\hrhs_debug;
 
 final class HRHS_Login_Widget extends Widget_Base {
 
