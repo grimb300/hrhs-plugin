@@ -90,6 +90,8 @@ class HRHS_Plugin {
     $this->instantiate_search_page();
     add_action( 'plugins_loaded', array( $this, 'register_elementor_widgets' ) );
     // $this->register_elementor_widgets();
+    add_action( 'wp_authenticate', array( $this, 'hrhs_handle_empty_login' ), 1, 2 );
+    add_action( 'wp_login_failed', array( $this, 'hrhs_handle_failed_login' ) );
   }
 
   // Load dependencies
@@ -150,7 +152,41 @@ class HRHS_Plugin {
     hrhs_debug( 'HRHS_Elementor_Widgets has met all of the requirements, loading widgets' );
     require_once HRHS_PLUGIN_PATH . 'elementor/class-hrhs-elementor-widgets.php';
   }
+
+  // Get the HTTP_REFERER (if it exists) and strip off any "login" parameters in the URL
+  private function hrhs_get_referer() {
+    $referer = preg_replace( '/^(.*)\?.*$/', '$1', $_SERVER[ 'HTTP_REFERER' ] );
+    return $referer;
+  }
+
+  // Elegantly handle member logins with empty credentials from non-admin pages
+  public function hrhs_handle_empty_login( $username, $pwd ) {
+    hrhs_debug( 'Inside hrhs_handle_empty_login()' );
+    $referer = $this->hrhs_get_referer();
+    // If there's a valid referer and it is not the default WP login or admin page
+    if ( ! empty( $referer ) && ! strstr( $referer, 'wp-login' ) && ! strstr( $referer, 'wp-admin' ) ) {
+      if ( empty( $username ) ) {
+        wp_redirect( $referer . '?login=empty_user' );
+        exit;
+      }
+      if ( empty( $pwd ) ) {
+        wp_redirect( $referer . '?login=empty_pwd' );
+        exit;
+      }
+    }
+  }
   
+  // Elegantly handle failed member logins from non-admin pages
+  public function hrhs_handle_failed_login( $username ) {
+    hrhs_debug( 'Inside hrhs_handle_failed_login()' );
+    $referer = $this->hrhs_get_referer();
+    // If there's a valid referer and it is not the default WP login or admin page
+    if ( ! empty( $referer ) && ! strstr( $referer, 'wp-login' ) && ! strstr( $referer, 'wp-admin' ) ) {
+      wp_redirect( $referer . '?login=failed' );
+      exit;
+    }
+  }
+ 
   // Run
   // TODO: Not sure this is really necessary
   public function run() {

@@ -98,6 +98,7 @@ class HRHS_Search {
   }
 
   public function hrhs_search_page_handle_failed_login( $username ) {
+    hrhs_debug( 'Inside hrhs_search_page_handle_failed_login()' );
     $referer = $_SERVER[ 'HTTP_REFERER' ];
     // If there's a valid referer and it is this page...
     if ( ! empty( $referer ) && strstr( $referer , $this->slug ) ) {
