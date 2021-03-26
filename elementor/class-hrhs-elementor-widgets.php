@@ -9,6 +9,8 @@ namespace HRHSElementor;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
+use function HRHSPlugin\hrhs_debug;
+
 final class HRHS_Elementor_Widgets {
 
   /* **********
@@ -33,6 +35,7 @@ final class HRHS_Elementor_Widgets {
   // Include individual widget files
   private function include_widget_files() {
     require_once HRHS_PLUGIN_PATH . 'elementor/class-hrhs-login-widget.php';
+    require_once HRHS_PLUGIN_PATH . 'elementor/class-hrhs-search-widget.php';
   }
 
   // Register the new Elementor widgets
@@ -44,6 +47,7 @@ final class HRHS_Elementor_Widgets {
 
     // Register the widget classes
     \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new Widgets\HRHS_Login_Widget() );
+    \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new Widgets\HRHS_Search_Widget() );
   }
 
   public function __construct() {
