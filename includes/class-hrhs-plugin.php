@@ -24,7 +24,7 @@ class HRHS_Plugin {
   public function __construct() {
     // Define the post types
     $this->post_type_defs = array(
-      'name_info' => array(
+      'name_entry' => array(
         'slug' => 'name_entry',
         'singular_name' => 'Name Entry',
         'plural_name' => 'Name Entries',
@@ -40,7 +40,7 @@ class HRHS_Plugin {
           array( 'label' => 'ID',          'slug' => 'ID',        'search' => 'none',   'display' => 'none' ),
         ),
       ),
-      'news_info' => array(
+      'news_entry' => array(
         'slug' => 'news_entry',
         'singular_name' => 'News Entry',
         'plural_name' => 'News Entries',
@@ -52,7 +52,7 @@ class HRHS_Plugin {
           array( 'label' => 'Sort Order', 'slug' => 'sort',  'search' => 'none',   'display' => 'none' ), // Order first
         ),
       ),
-      'place_info' => array(
+      'place_entry' => array(
         'slug' => 'place_entry',
         'singular_name' => 'Place Entry',
         'plural_name' => 'Place Entries',
@@ -66,7 +66,7 @@ class HRHS_Plugin {
           array( 'label' => 'Designator', 'slug' => 'designator', 'search' => 'none',   'display' => 'member' ),
         ),
       ),
-      // 'obit_info' => array(
+      // 'obit_entry' => array(
       //   'slug' => 'obit_entry',
       //   'singular_name' => 'Obituary Entry',
       //   'plural_name' => 'Obituary Entries',
