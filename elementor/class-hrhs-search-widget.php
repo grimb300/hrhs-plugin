@@ -126,10 +126,15 @@ final class HRHS_Search_Widget extends Widget_Base {
     $settings = $this->get_settings_for_display();
 
     // $this->add_inline_editing_attributes( 'title', 'none' );
-    // $this->add_inline_editing_attributes( 'description', 'basic' );
+    $this->add_inline_editing_attributes( 'description', 'basic' );
     // $this->add_inline_editing_attributes( 'content', 'advanced' );
     ?>
     <div class="hrhs_search_wrap">
+      <p <?php echo $this->get_render_attribute_string( 'description'); ?>><?php echo $settings[ 'descripton' ]; ?></p>
+      <form id="hrhs-search" action="" method="post">
+        <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="???">
+        <input type="submit" class="search-submit" value="Search?">
+      </form>
       <h4>Search stuff goes here!</h4>
     </div>
 		<?php
