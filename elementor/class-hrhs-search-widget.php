@@ -135,7 +135,6 @@ final class HRHS_Search_Widget extends Widget_Base {
         <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="???">
         <input type="submit" class="search-submit" value="Search?">
       </form>
-      <h4>Search stuff goes here!</h4>
     </div>
 		<?php
   }
@@ -149,7 +148,11 @@ final class HRHS_Search_Widget extends Widget_Base {
     view.addInlineEditingAttributes( 'description', 'none' );
     #>
     <div class="hrhs_search_wrap">
-      <h4>Search stuff goes here!</h4>
+      <p {{{ view.getRenderAttributeString( 'description') }}}>{{{ settings.descripton }}}</p>
+      <form id="hrhs-search" action="" method="post">
+        <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="???">
+        <input type="submit" class="search-submit" value="Search?">
+      </form>
     </div>
     <?php
   }
