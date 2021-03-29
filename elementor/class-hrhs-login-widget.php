@@ -147,7 +147,7 @@ final class HRHS_Login_Widget extends Widget_Base {
         ) );
         // If the previous login attempt failed, add an appropriate message
         if ( ! empty( $_REQUEST[ 'login' ] ) ) {
-          hrhs_debug( 'Login failure: '. $_REQUEST[ 'login' ] );
+          // hrhs_debug( 'Login failure: '. $_REQUEST[ 'login' ] );
           if ( 'failed' === $_REQUEST[ 'login' ] ) {
             ?>
             <p class="hrhs_login_error">Incorrect password, try again</p>
@@ -164,7 +164,7 @@ final class HRHS_Login_Widget extends Widget_Base {
             <?php
           }
         } else {
-          hrhs_debug( 'No login info' );
+          // hrhs_debug( 'No login info' );
         }
       }
       ?>

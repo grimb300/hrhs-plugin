@@ -65,7 +65,7 @@ class HRHS_Search {
   }
 
   public function hrhs_serach_enqueue_scripts() {
-    hrhs_debug( 'Inside hrhs_serach_enqueue_scripts' );
+    // hrhs_debug( 'Inside hrhs_serach_enqueue_scripts' );
     // Check which search page this is
     if ( ! $this->is_current_search_page() ) {
       // Not my page, bail and return without modification
@@ -100,7 +100,7 @@ class HRHS_Search {
   }
 
   public function hrhs_search_page_handle_failed_login( $username ) {
-    hrhs_debug( 'Inside hrhs_search_page_handle_failed_login()' );
+    // hrhs_debug( 'Inside hrhs_search_page_handle_failed_login()' );
     $referer = $_SERVER[ 'HTTP_REFERER' ];
     // If there's a valid referer and it is this page...
     if ( ! empty( $referer ) && strstr( $referer , $this->slug ) ) {
