@@ -89,7 +89,7 @@ class HRHS_Plugin {
 
     $this->load_dependencies();
     $this->instantiate_post_types();
-    $this->instantiate_search_page();
+    // $this->instantiate_search_page();
     add_action( 'plugins_loaded', array( $this, 'register_elementor_widgets' ) );
     // $this->register_elementor_widgets();
     add_action( 'wp_authenticate', array( $this, 'hrhs_handle_empty_login' ), 1, 2 );
@@ -104,7 +104,8 @@ class HRHS_Plugin {
   // Load dependencies
   private function load_dependencies() {
     require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-post-type.php';
-    require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-search.php';
+    // require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-search.php';
+    require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-simple-search.php';
     require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-options.php';
   }
 
@@ -157,7 +158,7 @@ class HRHS_Plugin {
     }
 
     // Once we get here, We have passed all validation checks so we can safely include our widgets.
-    hrhs_debug( 'HRHS_Elementor_Widgets has met all of the requirements, loading widgets' );
+    // hrhs_debug( 'HRHS_Elementor_Widgets has met all of the requirements, loading widgets' );
     require_once HRHS_PLUGIN_PATH . 'elementor/class-hrhs-elementor-widgets.php';
   }
 
@@ -169,7 +170,7 @@ class HRHS_Plugin {
 
   // Elegantly handle member logins with empty credentials from non-admin pages
   public function hrhs_handle_empty_login( $username, $pwd ) {
-    hrhs_debug( 'Inside hrhs_handle_empty_login()' );
+    // hrhs_debug( 'Inside hrhs_handle_empty_login()' );
     $referer = $this->hrhs_get_referer();
     // If there's a valid referer and it is not the default WP login or admin page
     if ( ! empty( $referer ) && ! strstr( $referer, 'wp-login' ) && ! strstr( $referer, 'wp-admin' ) ) {
@@ -186,7 +187,7 @@ class HRHS_Plugin {
   
   // Elegantly handle failed member logins from non-admin pages
   public function hrhs_handle_failed_login( $username ) {
-    hrhs_debug( 'Inside hrhs_handle_failed_login()' );
+    // hrhs_debug( 'Inside hrhs_handle_failed_login()' );
     $referer = $this->hrhs_get_referer();
     // If there's a valid referer and it is not the default WP login or admin page
     if ( ! empty( $referer ) && ! strstr( $referer, 'wp-login' ) && ! strstr( $referer, 'wp-admin' ) ) {

@@ -75,7 +75,7 @@ class HRHS_Post_Type {
     );
 
     $this->initialize_hrhs_post_type();
-    $this->instantiate_search_page( $params );
+    // $this->instantiate_search_page( $params );
   }
   
   private function initialize_hrhs_post_type() {

@@ -7,6 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 use Elementor\Widget_Base;
 use Elementor\Controls_Manager;
 use HRHSPlugin\HRHS_Options;
+use HRHSPlugin\HRHS_Simple_Search;
 use function HRHSPlugin\hrhs_debug;
 
 final class HRHS_Search_Widget extends Widget_Base {
@@ -54,13 +55,13 @@ final class HRHS_Search_Widget extends Widget_Base {
   // Register the widget controls
   // Adds different input fields to allow the user to change and customize the widget settings
   protected function _register_controls() {
-    hrhs_debug( 'Inside HRHS_Search_Widget::_register_controls()');
+    // hrhs_debug( 'Inside HRHS_Search_Widget::_register_controls()');
 
     // Get the various CPTs that could be searched out of options
     require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-options.php';
     $options_obj = new HRHS_Options();
     $my_options = $options_obj->get();
-    hrhs_debug( $my_options );
+    // hrhs_debug( $my_options );
 
     // Build the search_type select array
     $search_types_select = array_map( 
@@ -79,15 +80,6 @@ final class HRHS_Search_Widget extends Widget_Base {
       )
     );
 
-    // $this->add_control(
-    //   'title',
-    //   array(
-    //     'label' => 'Title',
-    //     'type' => Controls_Manager::TEXT,
-    //     'default' => 'Title'
-    //   )
-    // );
-
     $this->add_control(
       'search_type',
       array(
@@ -95,9 +87,18 @@ final class HRHS_Search_Widget extends Widget_Base {
         'type' => Controls_Manager::SELECT,
         'options' => $search_types_select,
         'default' => $search_type_default
-      )
-    );
-
+        )
+      );
+      
+      $this->add_control(
+        'title',
+        array(
+          'label' => 'Title',
+          'type' => Controls_Manager::TEXT,
+          'default' => 'Database Search'
+        )
+      );
+  
     $this->add_control(
       'description',
       array(
@@ -107,14 +108,14 @@ final class HRHS_Search_Widget extends Widget_Base {
       )
     );
 
-    // $this->add_control(
-    //   'content',
-    //   array(
-    //     'label' => 'Content',
-    //     'type' => Controls_Manager::WYSIWYG,
-    //     'default' => 'Content'
-    //   )
-    // );
+    $this->add_control(
+      'button_text',
+      array(
+        'label' => 'Search Button Text',
+        'type' => Controls_Manager::TEXT,
+        'default' => 'Search'
+      )
+    );
 
     $this->end_controls_section();
   }
@@ -123,18 +124,28 @@ final class HRHS_Search_Widget extends Widget_Base {
   // Written in PHP and used to generate the final HTML
   // NOTE: This is displayed on the frontend and the editor when not editing the content
   protected function render() {
+    // Get the settings values
     $settings = $this->get_settings_for_display();
 
-    // $this->add_inline_editing_attributes( 'title', 'none' );
+    // Enable inline editing for certain settings
+    $this->add_inline_editing_attributes( 'title', 'none' );
     $this->add_inline_editing_attributes( 'description', 'basic' );
-    // $this->add_inline_editing_attributes( 'content', 'advanced' );
+
+    // Get the search params (if present)
+    // $search_params = empty( $_REQUEST[ 'hrhs-search' ] ) ? array() : stripslashes_deep( $_REQUEST[ 'hrhs-search' ] );
+    $needle = empty( $_REQUEST[ 'hrhs-search' ][ 'needle' ] ) ? '' : $_REQUEST[ 'hrhs-search' ][ 'needle' ];
     ?>
     <div class="hrhs_search_wrap">
-      <p <?php echo $this->get_render_attribute_string( 'description'); ?>><?php echo $settings[ 'descripton' ]; ?></p>
+      <h4 <?php echo $this->get_render_attribute_string( 'title'); ?>><?php echo $settings[ 'title' ]; ?></h4>
+      <p <?php echo $this->get_render_attribute_string( 'description'); ?>><?php echo $settings[ 'description' ]; ?></p>
       <form id="hrhs-search" action="" method="post">
-        <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="???">
-        <input type="submit" class="search-submit" value="Search?">
+        <input type="hidden" name="hrhs-search[haystacks][<?php echo $settings[ 'search_type' ]; ?>]" value="on">
+        <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="<?php echo $needle; ?>">
+        <input type="submit" class="search-submit" value="<?php echo $settings[ 'button_text' ]; ?>">
       </form>
+    </div>
+    <div class="hrhs_results_wrap">
+      <?php HRHS_Simple_Search::display_search_results(); ?>
     </div>
 		<?php
   }
@@ -145,13 +156,16 @@ final class HRHS_Search_Widget extends Widget_Base {
   protected function _content_template() {
     ?>
     <#
-    view.addInlineEditingAttributes( 'description', 'none' );
+    view.addInlineEditingAttributes( 'title', 'none' );
+    view.addInlineEditingAttributes( 'description', 'basic' );
     #>
     <div class="hrhs_search_wrap">
-      <p {{{ view.getRenderAttributeString( 'description') }}}>{{{ settings.descripton }}}</p>
+      <h4 {{{ view.getRenderAttributeString( 'title') }}}>{{{ settings.title }}}</h4>
+      <p {{{ view.getRenderAttributeString( 'description') }}}>{{{ settings.description }}}</p>
       <form id="hrhs-search" action="" method="post">
-        <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="???">
-        <input type="submit" class="search-submit" value="Search?">
+        <input type="hidden" name="hrhs-search[haystacks][{{{ settings.search_type }}}]" value="on">
+        <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="">
+        <input type="submit" class="search-submit" value="{{{ settings.button_text }}}">
       </form>
     </div>
     <?php
