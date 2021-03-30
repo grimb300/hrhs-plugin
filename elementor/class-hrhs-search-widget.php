@@ -16,9 +16,9 @@ final class HRHS_Search_Widget extends Widget_Base {
   public function __construct( $data = array(), $args = null ) {
     parent::__construct( $data, $args );
 
-    // The tutorial registers a stylesheet here
-    // $hrhs_search_styles_css_ver = date( 'ymd-Gis', filemtime( HRHS_PLUGIN_PATH . 'css/hrhs-search-styles.css' ) );
-    // wp_register_style( 'hrhs_search_styles_css', HRHS_PLUGIN_URL . 'css/hrhs-search-styles.css', array(), $hrhs_search_styles_css_ver );
+    // Register the stylesheet
+    $hrhs_search_styles_css_ver = date( 'ymd-Gis', filemtime( HRHS_PLUGIN_PATH . 'css/hrhs-search-styles.css' ) );
+    wp_register_style( 'hrhs_search_styles_css', HRHS_PLUGIN_URL . 'css/hrhs-search-styles.css', array(), $hrhs_search_styles_css_ver );
   }
 
   // Retreive the widget name
@@ -48,8 +48,7 @@ final class HRHS_Search_Widget extends Widget_Base {
 
   // Enqueue styles
   public function get_style_depends() {
-    // return array( 'hrhs_search_styles_css' );
-    return array();
+    return array( 'hrhs_search_styles_css' );
   }
 
   // Register the widget controls
@@ -102,18 +101,27 @@ final class HRHS_Search_Widget extends Widget_Base {
     $this->add_control(
       'description',
       array(
-        'label' => 'Description',
+        'label' => 'Search Description',
         'type' => Controls_Manager::TEXTAREA,
         'default' => 'Search is not case sensitive. Results indicate number and type of records available through the HRHS Library database.'
       )
     );
 
     $this->add_control(
-      'button_text',
+    'button_text',
+    array(
+      'label' => 'Search Button Text',
+      'type' => Controls_Manager::TEXT,
+      'default' => 'Search'
+      )
+    );
+      
+    $this->add_control(
+      'login_msg',
       array(
-        'label' => 'Search Button Text',
-        'type' => Controls_Manager::TEXT,
-        'default' => 'Search'
+        'label' => 'Login Required Message',
+        'type' => Controls_Manager::TEXTAREA,
+        'default' => 'This search is reserved for HRHS Members, please login to continue.'
       )
     );
 
@@ -130,24 +138,96 @@ final class HRHS_Search_Widget extends Widget_Base {
     // Enable inline editing for certain settings
     $this->add_inline_editing_attributes( 'title', 'none' );
     $this->add_inline_editing_attributes( 'description', 'basic' );
+    $this->add_inline_editing_attributes( 'login_msg', 'basic' );
 
-    // Get the search params (if present)
-    // $search_params = empty( $_REQUEST[ 'hrhs-search' ] ) ? array() : stripslashes_deep( $_REQUEST[ 'hrhs-search' ] );
-    $needle = empty( $_REQUEST[ 'hrhs-search' ][ 'needle' ] ) ? '' : $_REQUEST[ 'hrhs-search' ][ 'needle' ];
+    // Get the search term(s) (if present)
+    $needle =
+      empty( $_REQUEST[ 'hrhs-search' ][ 'needle' ] )
+      ? null
+      : $_REQUEST[ 'hrhs-search' ][ 'needle' ];
+
+    // The haystack will always be the widget's search_type despite the request parameter "haystacks",
+    // keeping it around for possible backward compatability with the old "search" class
+    $haystack = $settings[ 'search_type' ];
+
+    // Instantiate the "simple_search" object for this needle/haystack
+    $search_obj = new HRHS_Simple_Search( array(
+      'needle' => $needle,
+      'haystack' => $haystack
+    ) );
+
+    // Get the searchable status for this haystack
+    $haystack_not_searchable = empty( $search_obj->get_search_fields() );
+
     ?>
     <div class="hrhs_search_wrap">
       <h4 <?php echo $this->get_render_attribute_string( 'title'); ?>><?php echo $settings[ 'title' ]; ?></h4>
-      <p <?php echo $this->get_render_attribute_string( 'description'); ?>><?php echo $settings[ 'description' ]; ?></p>
-      <form id="hrhs-search" action="" method="post">
-        <input type="hidden" name="hrhs-search[haystacks][<?php echo $settings[ 'search_type' ]; ?>]" value="on">
-        <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="<?php echo $needle; ?>">
-        <input type="submit" class="search-submit" value="<?php echo $settings[ 'button_text' ]; ?>">
-      </form>
+      <?php
+      if ( $haystack_not_searchable ) {
+        // If the haystack isn't searchable, display the "login required" message
+        ?>
+        <p <?php echo $this->get_render_attribute_string( 'login_msg'); ?>><?php echo $settings[ 'login_msg' ]; ?></p>
+        <?php
+      } else {
+        // Else, display the search form
+        ?>
+        <p <?php echo $this->get_render_attribute_string( 'description'); ?>><?php echo $settings[ 'description' ]; ?></p>
+        <form id="hrhs-search" action="" method="post">
+          <input type="hidden" name="hrhs-search[haystacks][<?php echo $settings[ 'search_type' ]; ?>]" value="on">
+          <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="<?php echo $needle; ?>">
+          <input type="submit" class="search-submit" value="<?php echo $settings[ 'button_text' ]; ?>">
+        </form>
+        <?php
+      }
+      ?>
     </div>
-    <div class="hrhs_results_wrap">
-      <?php HRHS_Simple_Search::display_search_results(); ?>
-    </div>
-		<?php
+    <?php
+    // If a needle was provided and the haystack is searchable, display the search results
+    if ( null !== $needle && ! $haystack_not_searchable ) {
+      $search_results = $search_obj->get_search_results( array( 'needle' => $needle ) );
+      $num_results = count( $search_results );
+      ?>
+      <div class="hrhs_results_wrap">
+        <h4>Your search for "<?php echo $needle; ?>" generated <?php echo $num_results; ?> results</h4>
+        <?php
+        // If any results were returned, display them here
+        if ( $num_results > 0 ) {
+          $display_fields = $search_obj->get_display_fields();
+          if ( ! empty( $display_fields ) ) {
+            ?>
+            <table>
+              <tbody>
+                <tr>
+                  <?php foreach ( $display_fields as $field ) { ?>
+                    <th scope="col"><?php echo $field[ 'label' ]; ?></th>
+                  <?php } ?>
+                </tr>
+                <?php foreach ( $search_results as $post_id ) { ?>
+                  <tr>
+                    <?php
+                    $result_meta_data = get_post_meta( $post_id );
+                    foreach( $display_fields as $field ) {
+                      $field_meta_name = $field[ 'slug' ];
+                      $field_meta_data =
+                        array_key_exists( $field_meta_name, $result_meta_data )
+                        ? $result_meta_data[ $field_meta_name ][0]
+                        : '';
+                      ?>
+                      <td><?php echo $field_meta_data; ?></td>
+                      <?php
+                    } // foreach $display_fields
+                    ?>
+                  </tr>
+                <?php } // foreach $search_results ?>
+              </tbody>
+            </table>
+            <?php
+          }
+        }
+        ?>
+      </div>
+      <?php
+    }
   }
 
   // Render the widget output in the editor
