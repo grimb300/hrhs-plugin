@@ -65,7 +65,7 @@ final class HRHS_Login_Widget extends Widget_Base {
       array(
         'label' => 'Title',
         'type' => Controls_Manager::TEXT,
-        'default' => 'Title'
+        'default' => 'Member Access'
       )
     );
 
@@ -74,16 +74,25 @@ final class HRHS_Login_Widget extends Widget_Base {
       array(
         'label' => 'Description',
         'type' => Controls_Manager::TEXTAREA,
-        'default' => 'Description'
+        'default' => 'Rocktown History members provide sustaining funds for the collection, preservation, and research of genealogy and local history resources. Member benefits include expanded online searches of Names and Historic Locations.'
       )
     );
 
     $this->add_control(
-      'content',
+      'password_label',
       array(
-        'label' => 'Content',
-        'type' => Controls_Manager::WYSIWYG,
-        'default' => 'Content'
+        'label' => 'Password Label',
+        'type' => Controls_Manager::TEXTAREA,
+        'default' => 'Password is case sensitive. Please contact the Administrator with access questions.'
+      )
+    );
+
+    $this->add_control(
+      'button_text',
+      array(
+        'label' => 'Login Button Text',
+        'type' => Controls_Manager::TEXT,
+        'default' => 'Log In'
       )
     );
 
@@ -96,9 +105,8 @@ final class HRHS_Login_Widget extends Widget_Base {
   protected function render() {
     $settings = $this->get_settings_for_display();
 
-    // $this->add_inline_editing_attributes( 'title', 'none' );
-    // $this->add_inline_editing_attributes( 'description', 'basic' );
-    // $this->add_inline_editing_attributes( 'content', 'advanced' );
+    $this->add_inline_editing_attributes( 'title', 'none' );
+    $this->add_inline_editing_attributes( 'description', 'basic' );
     ?>
     <div class="hrhs_member_login_wrap">
       <div class="hrhs_memeber_greeting">
@@ -112,12 +120,14 @@ final class HRHS_Login_Widget extends Widget_Base {
           } elseif ( ! empty( $current_user->last_name ) ) {
             $display_name = $current_user->last_name;
           }
-          echo sprintf( '<h4>Welcome, %s!', $display_name );
+          ?>
+          <h4>Welcome, <?php echo $display_name; ?>!</h4>
+          <?php
         } else {
           // Display the member login message
           ?>
-          <h4>Member Access</h4>
-          <p>Rocktown History members provide sustaining funds for the collection, preservation, and research of genealogy and local history resources. Member benefits include expanded online searches of Names and Historic Locations.</p>
+          <h4 <?php echo $this->get_render_attribute_string( 'title' ); ?>><?php echo $settings[ 'title' ]; ?></h4>
+          <p <?php echo $this->get_render_attribute_string( 'description' ); ?>><?php echo $settings[ 'description' ]; ?></p>
           <?php
         }
         ?>
@@ -134,9 +144,9 @@ final class HRHS_Login_Widget extends Widget_Base {
           'redirect' => $_SERVER[ 'REQUEST_URI' ],
           'form_id' => 'hrhs_member_login_form',
           'label_username' => '',
-          'label_password' => 'Password is case sensitive. Please contact the Administrator with access questions.',
+          'label_password' => $settings[ 'password_label' ],
           // 'label_remember' => '',
-          'label_log_in' => 'Log In',
+          'label_log_in' => $settings[ 'button_text' ],
           'id_username' => 'hrhs_member_username',
           'id_password' => 'hrhs_member_password',
           // 'id_remember' => 'hrhs_member_remember',
@@ -179,30 +189,34 @@ final class HRHS_Login_Widget extends Widget_Base {
     ?>
     <#
     view.addInlineEditingAttributes( 'title', 'none' );
-    view.addInlineEditingAttributes( 'description', 'none' );
-    view.addInlineEditingAttributes( 'content', 'none' );
+    view.addInlineEditingAttributes( 'description', 'basic' );
     #>
-    <h2 {{{ view.getRenderAttributeString( 'title' ) }}}>{{{ settings.title }}}</h2>
-    <div {{{ view.getRenderAttributeString( 'description' ) }}}>{{{ settings.description }}}</div>
-    <div {{{ view.getRenderAttributeString( 'content' ) }}}>{{{ settings.content }}}</div>
-    <?php
-    // Create the login form
-    wp_login_form( array(
-      'redirect' => $_SERVER[ 'REQUEST_URI' ],
-      'form_id' => 'hrhs_member_login_form',
-      'label_username' => '',
-      'label_password' => 'Password is case sensitive. Please contact the Administrator with access questions.',
-      // 'label_remember' => '',
-      'label_log_in' => 'Log In',
-      'id_username' => 'hrhs_member_username',
-      'id_password' => 'hrhs_member_password',
-      'id_remember' => 'hrhs_member_remember',
-      'id_submit' => 'hrhs_member_submit',
-      // 'remember' => false,
-      'value_username' => 'HRHS-MEMBER',
-      'value_remember' => true,
-    ) );
-    ?>
+    <div class="hrhs_member_login_wrap">
+      <div class="hrhs_memeber_greeting">
+        <h4 {{{ view.getRenderAttributeString( 'title' ) }}}>{{{ settings.title }}}</h4>
+        <p {{{ view.getRenderAttributeString( 'description' ) }}}>{{{ settings.description }}}</p>
+      </div>
+      <?php
+      // Create the login form
+      wp_login_form( array(
+        // 'echo' => false,
+        'echo' => true,
+        'redirect' => $_SERVER[ 'REQUEST_URI' ],
+        'form_id' => 'hrhs_member_login_form',
+        'label_username' => '',
+        'label_password' => $settings[ 'password_label' ],
+        // 'label_remember' => '',
+        'label_log_in' => $settings[ 'button_text' ],
+        'id_username' => 'hrhs_member_username',
+        'id_password' => 'hrhs_member_password',
+        // 'id_remember' => 'hrhs_member_remember',
+        'id_submit' => 'hrhs_member_submit',
+        'remember' => false,
+        'value_username' => 'HRHS-MEMBER',
+        // 'value_remember' => true,
+      ) );
+      ?>
+    </div>
     <?php
   }
 
