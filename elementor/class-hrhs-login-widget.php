@@ -107,6 +107,7 @@ final class HRHS_Login_Widget extends Widget_Base {
 
     $this->add_inline_editing_attributes( 'title', 'none' );
     $this->add_inline_editing_attributes( 'description', 'basic' );
+    $this->add_inline_editing_attributes( 'password_label', 'basic' );
     ?>
     <div class="hrhs_member_login_wrap">
       <div class="hrhs_memeber_greeting">
@@ -128,6 +129,7 @@ final class HRHS_Login_Widget extends Widget_Base {
           ?>
           <h4 <?php echo $this->get_render_attribute_string( 'title' ); ?>><?php echo $settings[ 'title' ]; ?></h4>
           <p <?php echo $this->get_render_attribute_string( 'description' ); ?>><?php echo $settings[ 'description' ]; ?></p>
+          <p <?php echo $this->get_render_attribute_string( 'password_label' ); ?>><?php echo $settings[ 'password_label' ]; ?></p>
           <?php
         }
         ?>
@@ -144,7 +146,8 @@ final class HRHS_Login_Widget extends Widget_Base {
           'redirect' => $_SERVER[ 'REQUEST_URI' ],
           'form_id' => 'hrhs_member_login_form',
           'label_username' => '',
-          'label_password' => $settings[ 'password_label' ],
+          // 'label_password' => $settings[ 'password_label' ],
+          'label_password' => '',
           // 'label_remember' => '',
           'label_log_in' => $settings[ 'button_text' ],
           'id_username' => 'hrhs_member_username',
@@ -190,23 +193,28 @@ final class HRHS_Login_Widget extends Widget_Base {
     <#
     view.addInlineEditingAttributes( 'title', 'none' );
     view.addInlineEditingAttributes( 'description', 'basic' );
+    view.addInlineEditingAttributes( 'password_label', 'basic' );
     #>
     <div class="hrhs_member_login_wrap">
       <div class="hrhs_memeber_greeting">
         <h4 {{{ view.getRenderAttributeString( 'title' ) }}}>{{{ settings.title }}}</h4>
         <p {{{ view.getRenderAttributeString( 'description' ) }}}>{{{ settings.description }}}</p>
+        <p {{{ view.getRenderAttributeString( 'password_label' ) }}}>{{{ settings.password_label }}}</p>
       </div>
       <?php
       // Create the login form
+      // $settings = $this->get_settings_for_display();
       wp_login_form( array(
         // 'echo' => false,
         'echo' => true,
         'redirect' => $_SERVER[ 'REQUEST_URI' ],
         'form_id' => 'hrhs_member_login_form',
         'label_username' => '',
-        'label_password' => $settings[ 'password_label' ],
+        // 'label_password' => $settings[ 'password_label' ],
+        'label_password' => '',
         // 'label_remember' => '',
-        'label_log_in' => $settings[ 'button_text' ],
+        // 'label_log_in' => $settings[ 'button_text' ],
+        'label_log_in' => 'Log In',
         'id_username' => 'hrhs_member_username',
         'id_password' => 'hrhs_member_password',
         // 'id_remember' => 'hrhs_member_remember',
