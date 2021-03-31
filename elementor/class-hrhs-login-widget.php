@@ -204,6 +204,9 @@ final class HRHS_Login_Widget extends Widget_Base {
       <?php
       // Create the login form
       // $settings = $this->get_settings_for_display();
+      // FIXME: I don't know of a good way to dynamically update the "button_text"
+      //        due to using a PHP function to render the login form
+      //        I guess I could just punt and create the form by hand, without wp_login_form
       wp_login_form( array(
         // 'echo' => false,
         'echo' => true,

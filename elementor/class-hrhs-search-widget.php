@@ -248,7 +248,38 @@ final class HRHS_Search_Widget extends Widget_Base {
         <input type="submit" class="search-submit" value="{{{ settings.button_text }}}">
       </form>
     </div>
-    <?php
+    <div class="hrhs_results_wrap">
+      <h4>Your search for "test" generated 3 results</h4>
+      <table>
+        <tbody>
+          <tr>
+            <th scope="col">Heading 1</th>
+            <th scope="col">Heading 2</th>
+            <th scope="col">Heading 3</th>
+            <th scope="col">Heading 4</th>
+          </tr>
+          <tr>
+            <td>Record 1 - Data 1</td>
+            <td>Record 1 - Data 2</td>
+            <td>Record 1 - Data 3</td>
+            <td>Record 1 - Data 4</td>
+          </tr>
+          <tr>
+            <td>Record 2 - Data 1</td>
+            <td>Record 2 - Data 2</td>
+            <td>Record 2 - Data 3</td>
+            <td>Record 2 - Data 4</td>
+          </tr>
+          <tr>
+            <td>Record 3 - Data 1</td>
+            <td>Record 3 - Data 2</td>
+            <td>Record 3 - Data 3</td>
+            <td>Record 3 - Data 4</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+   <?php
   }
 
 }
