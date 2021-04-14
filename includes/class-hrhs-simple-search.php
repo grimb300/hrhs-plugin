@@ -71,6 +71,9 @@ class HRHS_Simple_Search {
       'meta_query' => $meta_query,
     );
 
+    // hrhs_debug( 'Query:' );
+    // hrhs_debug( $get_posts_query );
+
     // Return the search results
     return get_posts( $get_posts_query );
   }

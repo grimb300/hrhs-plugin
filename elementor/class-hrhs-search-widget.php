@@ -102,7 +102,7 @@ final class HRHS_Search_Widget extends Widget_Base {
       'description',
       array(
         'label' => 'Search Description',
-        'type' => Controls_Manager::TEXTAREA,
+        'type' => Controls_Manager::WYSIWYG,
         'default' => 'Search is not case sensitive. Results indicate number and type of records available through the HRHS Library database.'
       )
     );
