@@ -37,8 +37,11 @@ class HRHS_Plugin {
           array( 'label' => 'Marriage',    'slug' => 'marriage',  'search' => 'none',   'display' => 'member' ),
           array( 'label' => 'Remarks',     'slug' => 'remarks',   'search' => 'none',   'display' => 'member' ),
           array( 'label' => 'Information', 'slug' => 'infoname',  'search' => 'none',   'display' => 'all' ),
-          array( 'label' => 'ID',          'slug' => 'ID',        'search' => 'none',   'display' => 'none' ),
+          // Changing the name of the 'ID' field to not be confused with the 'id' field automatically added by default with HRHS_Database
+          // array( 'label' => 'ID',          'slug' => 'ID',        'search' => 'none',   'display' => 'none' ),
+          array( 'label' => 'ID',          'slug' => 'legacyID',  'search' => 'none',   'display' => 'none' ),
         ),
+        'database_version' => '0.1',
       ),
       'news_entry' => array(
         'slug' => 'news_entry',
@@ -51,6 +54,7 @@ class HRHS_Plugin {
           array( 'label' => 'Pages',      'slug' => 'pages', 'search' => 'none',   'display' => 'member' ),
           array( 'label' => 'Sort Order', 'slug' => 'sort',  'search' => 'none',   'display' => 'none' ), // Order first
         ),
+        'database_version' => '0.1',
       ),
       'place_entry' => array(
         'slug' => 'place_entry',
@@ -65,6 +69,7 @@ class HRHS_Plugin {
           array( 'label' => 'Infosource', 'slug' => 'infosource', 'search' => 'none',   'display' => 'member' ),
           array( 'label' => 'Designator', 'slug' => 'designator', 'search' => 'none',   'display' => 'member' ),
         ),
+        'database_version' => '0.1',
       ),
       // 'obit_entry' => array(
       //   'slug' => 'obit_entry',
@@ -81,6 +86,7 @@ class HRHS_Plugin {
       //     array( 'label' => 'Age',           'slug' => 'age',          'search' => 'none',   'display' => 'all' ),
       //     array( 'label' => 'Obit Location', 'slug' => 'obitlocation', 'search' => 'none',   'display' => 'all' ),
       //   ),
+      //   'database_version' => '0.1',
       // ),
     );
 
@@ -207,14 +213,22 @@ class HRHS_Plugin {
     foreach ( $this->post_type_objs as $post_type_obj ) {
       $post_type_obj->register_hrhs_post_type();
     }
-    // Register the database search page
-    $this->search_page->hrhs_search_page_rewrite_rules();
-    // Register the search page for each post type
-    foreach ( $this->post_type_objs as $post_type_obj ) {
-      $post_type_obj->register_post_type_search_page();
-    }
-    // Then flush the rewrite rules for them to take effect
-    flush_rewrite_rules();
+
+    /**
+     * Comment out the registering of search pages for now,
+     * going the elementor custom widgets route instead
+     */
+    // // Register the database search page
+    // $this->search_page->hrhs_search_page_rewrite_rules();
+    // // Register the search page for each post type
+    // foreach ( $this->post_type_objs as $post_type_obj ) {
+    //   $post_type_obj->register_post_type_search_page();
+    // }
+    // // Then flush the rewrite rules for them to take effect
+    // flush_rewrite_rules();
+    /**
+     * End comment out registering search pages
+     */
 
     // Create the default HRHS member user (if necessary)
     // NOTE: The email MUST be unique to all other users
@@ -232,6 +246,19 @@ class HRHS_Plugin {
       ) );
     } else {
       // hrhs_debug( 'User HRHS-MEMBER already exists, do nothing' );
+    }
+
+    // Install the HRHS custom database tables
+    require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-database.php';
+    foreach ( $this->post_type_defs as $post_type ) {
+      HRHS_Database::install( array(
+        'table_name' => $post_type[ 'slug' ],
+        'fields' => array_map(
+          function ( $field ) { return $field[ 'slug' ]; },
+          $post_type[ 'fields' ]
+        ),
+        'version' => $post_type[ 'database_version' ],
+      ) );
     }
   }
 
