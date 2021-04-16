@@ -30,16 +30,48 @@ class HRHS_Plugin {
         'plural_name' => 'Name Entries',
         // TODO: Verify which fields should be searchable, currently following what was done on old site
         'fields' => array(
-          array( 'label' => 'Surname',     'slug' => 'surname',   'search' => 'all',    'display' => 'all' ), // Order first
-          array( 'label' => 'Given Name',  'slug' => 'givenname', 'search' => 'member', 'display' => 'all' ), // Order second
-          array( 'label' => 'Birth',       'slug' => 'birth',     'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Death',       'slug' => 'death',     'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Marriage',    'slug' => 'marriage',  'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Remarks',     'slug' => 'remarks',   'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Information', 'slug' => 'infoname',  'search' => 'none',   'display' => 'all' ),
+          array(
+            'label' => 'Surname',      'slug' => 'surname',
+            'search' => 'all',         'display' => 'all',
+            'sql_data_type' => 'varchar(75)', // Data type from legacy MySQL database
+          ), // Order first
+          array(
+            'label' => 'Given Name',   'slug' => 'givenname',
+            'search' => 'member',      'display' => 'all',
+            'sql_data_type' => 'varchar(75)', // Data type from legacy MySQL database
+          ), // Order second
+          array(
+            'label' => 'Birth',        'slug' => 'birth',
+            'search' => 'none',        'display' => 'member',
+            'sql_data_type' => 'varchar(25)', // Data type from legacy MySQL database
+          ),
+          array(
+            'label' => 'Death',        'slug' => 'death',
+            'search' => 'none',        'display' => 'member',
+            'sql_data_type' => 'varchar(25)', // Data type from legacy MySQL database
+          ),
+          array(
+            'label' => 'Marriage',     'slug' => 'marriage',
+            'search' => 'none',        'display' => 'member',
+            'sql_data_type' => 'varchar(25)', // Data type from legacy MySQL database
+          ),
+          array(
+            'label' => 'Remarks',      'slug' => 'remarks',
+            'search' => 'none',        'display' => 'member',
+            'sql_data_type' => 'varchar(75)', // Data type from legacy MySQL database
+          ),
+          array(
+            'label' => 'Information',  'slug' => 'infoname',
+            'search' => 'none',        'display' => 'all',
+            'sql_data_type' => 'varchar(50)', // Data type from legacy MySQL database
+          ),
           // Changing the name of the 'ID' field to not be confused with the 'id' field automatically added by default with HRHS_Database
           // array( 'label' => 'ID',          'slug' => 'ID',        'search' => 'none',   'display' => 'none' ),
-          array( 'label' => 'ID',          'slug' => 'legacyID',  'search' => 'none',   'display' => 'none' ),
+          array(
+            'label' => 'ID',           'slug' => 'legacyID',
+            'search' => 'none',        'display' => 'none',
+            'sql_data_type' => 'int(9)', // Data type from legacy MySQL database
+            ),
         ),
         'database_version' => '0.1',
       ),
@@ -49,10 +81,26 @@ class HRHS_Plugin {
         'plural_name' => 'News Entries',
         // TODO: Verify which fields should be searchable, currently following what was done on old site
         'fields' => array(
-          array( 'label' => 'Year',       'slug' => 'year',  'search' => 'member', 'display' => 'member' ),
-          array( 'label' => 'Newspaper',  'slug' => 'news',  'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Pages',      'slug' => 'pages', 'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Sort Order', 'slug' => 'sort',  'search' => 'none',   'display' => 'none' ), // Order first
+          array(
+            'label' => 'Year',       'slug' => 'year',
+            'search' => 'member', 'display' => 'member',
+            'sql_data_type' => 'varchar(4)', // Data type from legacy MySQL database
+          ),
+          array(
+            'label' => 'Newspaper',  'slug' => 'news',
+            'search' => 'none',   'display' => 'member',
+            'sql_data_type' => 'varchar(100)', // Data type from legacy MySQL database
+          ),
+          array(
+            'label' => 'Pages',      'slug' => 'pages',
+            'search' => 'none',   'display' => 'member',
+            'sql_data_type' => 'varchar(4)', // Data type from legacy MySQL database
+          ),
+          array(
+            'label' => 'Sort Order', 'slug' => 'sort',
+            'search' => 'none',   'display' => 'none',
+            'sql_data_type' => 'varchar(6)', // Data type from legacy MySQL database
+          ), // Order first,
         ),
         'database_version' => '0.1',
       ),
@@ -62,12 +110,36 @@ class HRHS_Plugin {
         'plural_name' => 'Place Entries',
         // TODO: Verify which fields should be searchable, currently following what was done on old site
         'fields' => array(
-          array( 'label' => 'Placename',  'slug' => 'placename',  'search' => 'member', 'display' => 'member' ), // Order first
-          array( 'label' => 'Othername',  'slug' => 'othername',  'search' => 'none',   'display' => 'member' ), // Order second
-          array( 'label' => 'Location',   'slug' => 'location',   'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Remarks',    'slug' => 'remarks',    'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Infosource', 'slug' => 'infosource', 'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Designator', 'slug' => 'designator', 'search' => 'none',   'display' => 'member' ),
+          array(
+            'label' => 'Placename',  'slug' => 'placename',
+            'search' => 'member', 'display' => 'member',
+            'sql_data_type' => 'varchar(50)', // Data type from legacy MySQL database
+          ), // Order first
+          array(
+            'label' => 'Othername',  'slug' => 'othername',
+            'search' => 'none',   'display' => 'member',
+            'sql_data_type' => 'varchar(100)', // Data type from legacy MySQL database
+          ), // Order second
+          array(
+            'label' => 'Location',   'slug' => 'location',
+            'search' => 'none',   'display' => 'member',
+            'sql_data_type' => 'varchar(250)', // Data type from legacy MySQL database
+          ),
+          array(
+            'label' => 'Remarks',    'slug' => 'remarks',
+            'search' => 'none',   'display' => 'member',
+            'sql_data_type' => 'varchar(250)', // Data type from legacy MySQL database
+          ),
+          array(
+            'label' => 'Infosource', 'slug' => 'infosource',
+            'search' => 'none',   'display' => 'member',
+            'sql_data_type' => 'varchar(50)', // Data type from legacy MySQL database
+          ),
+          array(
+            'label' => 'Designator', 'slug' => 'designator',
+            'search' => 'none',   'display' => 'member',
+            'sql_data_type' => 'varchar(12)', // Data type from legacy MySQL database
+          ),
         ),
         'database_version' => '0.1',
       ),
@@ -254,7 +326,12 @@ class HRHS_Plugin {
       HRHS_Database::install( array(
         'table_name' => $post_type[ 'slug' ],
         'fields' => array_map(
-          function ( $field ) { return $field[ 'slug' ]; },
+          function ( $field ) {
+            return array(
+              'name' => $field[ 'slug' ],
+              'data_type' => $field[ 'sql_data_type' ]
+            );
+          },
           $post_type[ 'fields' ]
         ),
         'version' => $post_type[ 'database_version' ],

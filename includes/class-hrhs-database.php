@@ -39,7 +39,14 @@ class HRHS_Database {
       self::create_table( array(
         'name' => $table_name,
         'version' => $new_db_version,
-        'columns' => empty( $params[ 'fields'] ) ? array( 'col_1', 'col_2', 'col_3' ) : $params[ 'fields' ],
+        'columns' =>
+          empty( $params[ 'fields'] ) ?
+          array(
+            array( 'name' => 'col_1', 'data_type' => 'varchar(75)' ),
+            array( 'name' => 'col_2', 'data_type' => 'varchar(75)' ),
+            array( 'name' => 'col_3', 'data_type' => 'varchar(75)' )
+          ) :
+          $params[ 'fields' ],
       ) );
     } elseif ( $new_db_version === $current_db_version ) {
       // If the new database version matches the existing database, return
@@ -91,7 +98,7 @@ class HRHS_Database {
     // FIXME: Need to add data type info to the columns
     $sql_columns = array();
     foreach ( $params[ 'columns' ] as $column ) {
-      $sql_columns[] = "$column varchar(70) NOT NULL,";
+      $sql_columns[] = sprintf( "%s %s NOT NULL,", $column[ 'name' ], $column[ 'data_type' ] );
     }
     $sql_columns_string = implode( "\n", $sql_columns );
     $sql = 
@@ -103,6 +110,8 @@ class HRHS_Database {
 
   // Run the SQL
   require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+  // hrhs_debug( 'SQL Command:' );
+  // hrhs_debug( $sql );
   dbDelta( $sql );
 
   // Update the database version in options
