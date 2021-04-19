@@ -12,10 +12,20 @@ class HRHS_Database {
 
   private static $hrhs_db_version = 'null';
   private static $hrhs_db_prefix = 'hrhs_db_';
+  private static $hrhs_option_prefix = 'hrhs_db_version_';
 
   /* *******
    * Methods
    * *******/
+
+  private static function gen_table_name( $name ) {
+    global $wpdb;
+    return $wpdb->prefix . self::$hrhs_db_prefix . $name;
+  }
+
+  private static function gen_option_name( $name ) {
+    return self::$hrhs_option_prefix . $name;
+  }
 
   public static function install( $params = array() ) {
 
@@ -29,7 +39,8 @@ class HRHS_Database {
     // Get the current and new database versions
     $table_name = array_key_exists( 'table_name', $params ) ? $params[ 'table_name' ] : 'test_table';
     $new_db_version = array_key_exists( 'version', $params ) ? $params[ 'version' ] : '0.1';
-    $option_name = 'hrhs_db_version_' . $table_name;
+    // $option_name = 'hrhs_db_version_' . $table_name;
+    $option_name = self::gen_option_name( $table_name );
     $current_db_version = get_option( $option_name, null );
     hrhs_debug( 'HRHS_Database::install called for table ' . $params[ 'table_name' ] . ' version ' . $new_db_version );
 
@@ -87,8 +98,10 @@ class HRHS_Database {
     }
 
     // Construct the table name and the option name
-    $table_name = $wpdb->prefix . self::$hrhs_db_prefix . $params[ 'name' ];
-    $option_name = 'hrhs_db_version_' . $params[ 'name' ];
+    // $table_name = $wpdb->prefix . self::$hrhs_db_prefix . $params[ 'name' ];
+    $table_name = self::gen_table_name( $params[ 'name' ] );
+    // $option_name = 'hrhs_db_version_' . $params[ 'name' ];
+    $option_name = self::gen_option_name( $params[ 'name' ] );
     
     // Get the character set used by the DB
     $charset_collate = $wpdb->get_charset_collate();
@@ -133,7 +146,8 @@ class HRHS_Database {
     }
     
     // Construct the table name
-    $table_name = $wpdb->prefix . self::$hrhs_db_prefix . $params[ 'name' ];
+    // $table_name = $wpdb->prefix . self::$hrhs_db_prefix . $params[ 'name' ];
+    $table_name = self::gen_table_name( $params[ 'name' ] );
 
     // Insert the data
     $wpdb->insert( $table_name, $param[ 'data' ] );
