@@ -10,7 +10,6 @@ class HRHS_Database {
    * Properties
    * **********/
 
-  private static $hrhs_db_version = 'null';
   private static $hrhs_db_prefix = 'hrhs_db_';
   private static $hrhs_option_prefix = 'hrhs_db_version_';
 
@@ -75,14 +74,6 @@ class HRHS_Database {
       //   'callback' => $params[ 'upgrade_callback' ],
       // ) );
     }
-
-    // Update the database (will initialize the database if it doesn't exist)
-    // self::update_db();
-    // if ( $old_hrhs_db_version !== self::$hrhs_db_version ) {
-    //   update_option( 'hrhs_db_version', self::$hrhs_db_version );
-    // } else {
-    //   hrhs_debug( 'HRHS_Database is up to date, nothing to do here' );
-    // }
   }
 
   private static function create_table( $params ) {
