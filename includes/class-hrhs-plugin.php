@@ -168,8 +168,9 @@ class HRHS_Plugin {
     $this->load_dependencies();
     $this->instantiate_post_types();
     // $this->instantiate_search_page();
+    // FIXME: Should this function live in an Elementor specific file?
     add_action( 'plugins_loaded', array( $this, 'register_elementor_widgets' ) );
-    // $this->register_elementor_widgets();
+    // FIXME: These functions should only be loaded when the hrhs_login elementor widget is loaded
     add_action( 'wp_authenticate', array( $this, 'hrhs_handle_empty_login' ), 1, 2 );
     add_action( 'wp_login_failed', array( $this, 'hrhs_handle_failed_login' ) );
 
@@ -212,6 +213,7 @@ class HRHS_Plugin {
   }
 
   // Register the HRHS specific Elementor widgets
+  // FIXME: Should this function live in an Elementor specific file?
   public function register_elementor_widgets() {
     // Required versions
     $MINIMUM_ELEMENTOR_VERSION = '2.0.0';
@@ -247,6 +249,7 @@ class HRHS_Plugin {
   }
 
   // Elegantly handle member logins with empty credentials from non-admin pages
+  // FIXME: These functions should only be loaded when the hrhs_login elementor widget is loaded
   public function hrhs_handle_empty_login( $username, $pwd ) {
     // hrhs_debug( 'Inside hrhs_handle_empty_login()' );
     $referer = $this->hrhs_get_referer();
@@ -264,6 +267,7 @@ class HRHS_Plugin {
   }
   
   // Elegantly handle failed member logins from non-admin pages
+  // FIXME: These functions should only be loaded when the hrhs_login elementor widget is loaded
   public function hrhs_handle_failed_login( $username ) {
     // hrhs_debug( 'Inside hrhs_handle_failed_login()' );
     $referer = $this->hrhs_get_referer();
