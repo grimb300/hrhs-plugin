@@ -184,7 +184,11 @@ final class HRHS_Search_Widget extends Widget_Base {
     <?php
     // If a needle was provided and the haystack is searchable, display the search results
     if ( null !== $needle && ! $haystack_not_searchable ) {
+      // FIXME: There's an inconsistency between what is returned between the CPT and custom table flows.
+      //        Move the complexity into hrhs_simple_search so the consumer doesn't need to know what is going on.
       $search_results = $search_obj->get_search_results( array( 'needle' => $needle ) );
+      hrhs_debug( 'get_search_results returned:' );
+      hrhs_debug( $search_results );
       $num_results = count( $search_results );
       ?>
       <div class="hrhs_results_wrap">

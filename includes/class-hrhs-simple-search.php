@@ -10,6 +10,14 @@ class HRHS_Simple_Search {
    * Properties
    * **********/
 
+  // This property controls whether the search is being done on custom post types ( using get_posts( <query object> ) )
+  // or custom database tables ( using $wpdb->get_results( <SQL SELECT statement> ) )
+  // FIXME: I could allow this to be configured by the constructor if the plugin needs to mix the types of data
+  //        For now I'm keeping it static for all searches
+  private $custom_post_types = true;  // Search CPTs
+  // private $custom_post_types = false; // Search custom database tables
+
+  // These properties are filled in by the constructor
   private $needle = null;
   private $haystack_def = array();
   private $all_fields = array();
@@ -52,30 +60,45 @@ class HRHS_Simple_Search {
     // TODO: Do I need to sanitize further since the needle is used in a MySQL query?
     $needle = strtolower( filter_var( trim( $params[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
 
-    // Build a query for this haystack
-    $meta_query = array(
-      'relation' => 'OR', // Needle must match at least one field
-    );
-    foreach( $this->searchable_fields as $field ) {
-      $meta_query[ $field[ 'slug' ] . '_clause' ] = array(
-        'key' => $field[ 'slug' ],
-        'value' => $needle,   // NOTE: Using LIKE will automagically add
-        'compare' => 'LIKE',  //       SQL wildcards (%) around the value
+    // Branch here if the search should be done with custom post types or custom database tables
+    if ( $this->custom_post_types ) {
+      hrhs_debug( 'HRHS_Simple_Search::get_search_results - Searching custom post types' );
+
+      // Build a query for this haystack
+      $meta_query = array(
+        'relation' => 'OR', // Needle must match at least one field
       );
+      foreach( $this->searchable_fields as $field ) {
+        $meta_query[ $field[ 'slug' ] . '_clause' ] = array(
+          'key' => $field[ 'slug' ],
+          'value' => $needle,   // NOTE: Using LIKE will automagically add
+          'compare' => 'LIKE',  //       SQL wildcards (%) around the value
+        );
+      }
+      $get_posts_query = array(
+        'numberposts' => -1, // Return all matches
+        'fields' => 'ids',   // Return an array of post IDs
+        'post_type' => $this->haystack_def[ 'slug' ], // Search only the current haystack's post type
+        'post_status' => 'publish', // Return only published posts
+        'meta_query' => $meta_query,
+      );
+  
+      // hrhs_debug( 'Query:' );
+      // hrhs_debug( $get_posts_query );
+  
+      // Return the search results
+      return get_posts( $get_posts_query );
+    } else {
+      hrhs_debug( 'HRHS_Simple_Search::get_search_results - Searching custom database tables' );
+
+      require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-database.php';
+      $results = HRHS_Database::get_results( array(
+        'name' => $this->haystack_def[ 'slug' ],
+        'columns' => array_map( function ( $field ) { return $field[ 'slug' ]; }, $this->searchable_fields ),
+        'needle' => $needle
+      ) );
+      return $results;
     }
-    $get_posts_query = array(
-      'numberposts' => -1, // Return all matches
-      'fields' => 'ids',   // Return an array of post IDs
-      'post_type' => $this->haystack_def[ 'slug' ], // Search only the current haystack's post type
-      'post_status' => 'publish', // Return only published posts
-      'meta_query' => $meta_query,
-    );
-
-    // hrhs_debug( 'Query:' );
-    // hrhs_debug( $get_posts_query );
-
-    // Return the search results
-    return get_posts( $get_posts_query );
   }
 
   /* ******************

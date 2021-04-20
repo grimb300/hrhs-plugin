@@ -143,5 +143,55 @@ class HRHS_Database {
     // Insert the data
     $wpdb->insert( $table_name, $param[ 'data' ] );
   }
+
+  public static function get_results( $params ) {
+    global $wpdb;
+    hrhs_debug( 'HRHS_Database::get_results called' );
+    
+    // I don't want to mess with malformed params at this point, if required fields are missing return
+    // FIXME: For now, the only required field is the name of the table to be searched. Revisit this decision later
+    if ( empty( $params[ 'name' ] ) ) {
+      hrhs_debug( 'HRHS_Database::get_results - Missing name param, returning empty array');
+      return array();;
+    }
+
+    $table_name = self::gen_table_name( $params[ 'name' ] );
+
+    // If either the columns or needle params are empty, return all the results
+    // FIXME: This seems like a good compromise, allows returning the entire table. Revisit this decision later.
+    if ( empty( $params[ 'columns' ] ) || empty( $params[ 'needle' ] ) ) {
+      hrhs_debug( 'HRHS_Database::get_results - Missing columns or needle params, returning all the results' );
+      // FIXME: Actually return all the results here
+      return array();
+    }
+
+    hrhs_debug( sprintf( 'HRHS_Database::get_results - Searching for %s within the table %s with columns:', $params[ 'needle' ], $table_name ) );
+    hrhs_debug( $params[ 'columns' ] );
+    // Generate the placeholders used byt $wpd->prepare dynamically, the number of columns being searched is variable
+    $placeholders = implode( ' OR ', array_map(
+      function ( $column ) { return $column . ' LIKE %s'; },
+      $params[ 'columns' ] )
+    );
+    hrhs_debug( 'The placeholders string is:' );
+    hrhs_debug( $placeholders );
+
+    // Build the SQL command, use $wpdb->prepare to sanitize the needle and get proper quoting for LIKE statement
+    $wild = '%';
+    $needle = $wild . $wpdb->esc_like( $params[ 'needle' ] ) . $wild;
+    hrhs_debug( 'The needle is: ' . $needle );
+    $sql_command = $wpdb->prepare(
+      "SELECT * FROM $table_name WHERE $placeholders",
+      array_fill( 0, count( $params[ 'columns' ] ), $needle )
+    );
+    hrhs_debug( 'The full SQL command is:' );
+    hrhs_debug( $sql_command );
+
+    // Return the results of the database query
+    $results = $wpdb->get_results( $sql_command, ARRAY_A );
+    hrhs_debug( sprintf( 'The search results (%d):', count( $results ) ) );
+    // hrhs_debug( $results );
+    return $results;
+
+  }
  
 }
