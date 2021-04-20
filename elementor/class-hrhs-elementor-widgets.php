@@ -6,6 +6,7 @@
 //                 https://developers.elementor.com/creating-a-new-widget/
 
 namespace HRHSElementor;
+// FIXME: What happens if the namespace is changed to HRHSPlugin to match the rest of the plugin?
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 

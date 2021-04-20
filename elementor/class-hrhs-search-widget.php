@@ -1,6 +1,7 @@
 <?php
 
 namespace HRHSElementor\Widgets;
+// FIXME: What happens if the namespace is changed to HRHSPlugin to match the rest of the plugin?
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
