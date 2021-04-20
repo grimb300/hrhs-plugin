@@ -15,6 +15,8 @@ class HRHS_Plugin {
   protected $post_type_objs;
   // Search page
   protected $search_page;
+  // Admin objects
+  protected $admin_objs;
 
   /* *******
    * Methods
@@ -166,6 +168,10 @@ class HRHS_Plugin {
     $this->post_type_objs = array();
 
     $this->load_dependencies();
+    // Admin pages
+    if ( is_admin() ) {
+      $this->instantiate_admin_pages();
+    }
     $this->instantiate_post_types();
     // $this->instantiate_search_page();
     // FIXME: Should this function live in an Elementor specific file?
@@ -182,6 +188,10 @@ class HRHS_Plugin {
 
   // Load dependencies
   private function load_dependencies() {
+    // Admin pages
+    if ( is_admin() ) {
+      require_once HRHS_PLUGIN_PATH . 'admin/class-hrhs-admin-menu.php';
+    }
     require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-post-type.php';
     // require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-search.php';
     require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-simple-search.php';
@@ -194,6 +204,11 @@ class HRHS_Plugin {
     foreach ( $this->post_type_defs as $post_type => $post_type_def ) {
       $this->post_type_objs[ $post_type ] = new HRHS_Post_type( $post_type_def );
     }
+  }
+
+  // Instantiate admin pages (menus, options, etc)
+  private function instantiate_admin_pages() {
+    $this->admin_objs[ 'menu' ] = new HRHS_Admin_Menu();
   }
 
   // Instantiate the search page

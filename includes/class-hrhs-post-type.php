@@ -108,6 +108,11 @@ class HRHS_Post_Type {
       'supports' => false, // Default is array( 'title', 'editor' ), I want only the meta_box (defined below)
       'menu_icon' => $this->icon,
       'has_archive' => true, // Set to false if don't want archive page
+      // Removing from all menus here,
+      // will add them under a common root menu defined in class-hrhs-admin-menu.php
+      'show_in_menu' => false,
+      'show_in_nav_menus' => false,
+      'show_in_admin_bar' => false,
     );
     register_post_type( $this->slug, $post_type_args );
   }
