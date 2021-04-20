@@ -30,7 +30,7 @@ class HRHS_Database {
 
     // If $params is empty, do nothing
     if ( empty( $params ) ) {
-      hrhs_debug( 'HRHS_Database::install called with empty params, returning' );
+      // hrhs_debug( 'HRHS_Database::install called with empty params, returning' );
       return;
     }
 
@@ -41,11 +41,11 @@ class HRHS_Database {
     // $option_name = 'hrhs_db_version_' . $table_name;
     $option_name = self::gen_option_name( $table_name );
     $current_db_version = get_option( $option_name, null );
-    hrhs_debug( 'HRHS_Database::install called for table ' . $params[ 'table_name' ] . ' version ' . $new_db_version );
+    // hrhs_debug( 'HRHS_Database::install called for table ' . $params[ 'table_name' ] . ' version ' . $new_db_version );
 
     // If no current database version, create the table
     if ( null === $current_db_version ) {
-      hrhs_debug( 'No current database version, creating table' );
+      // hrhs_debug( 'No current database version, creating table' );
       self::create_table( array(
         'name' => $table_name,
         'version' => $new_db_version,
@@ -60,13 +60,13 @@ class HRHS_Database {
       ) );
     } elseif ( $new_db_version === $current_db_version ) {
       // If the new database version matches the existing database, return
-      hrhs_debug( 'Database is up to date, do nothing' );
+      // hrhs_debug( 'Database is up to date, do nothing' );
       return;
     } else {
       // Upgrade the database
       // FIXME: How do I best do this?
       //        Initial thought is to have the caller provide an upgrade callback function
-      hrhs_debug( sprintf( 'Upgrade the %s table from version %s to %s', $table_name, $current_db_version, $new_db_version ) );
+      // hrhs_debug( sprintf( 'Upgrade the %s table from version %s to %s', $table_name, $current_db_version, $new_db_version ) );
       // self::upgrade_table( array(
       //   'name' => $table_name,
       //   'current_version' => $current_db_version,
@@ -78,13 +78,13 @@ class HRHS_Database {
 
   private static function create_table( $params ) {
     global $wpdb;
-    hrhs_debug( 'HRHS_Database::create_table called' );
+    // hrhs_debug( 'HRHS_Database::create_table called' );
 
     // I don't want to mess with malformed params at this point, if required fields are missing return
     if (  empty( $params[ 'name' ] )    ||
           empty( $params[ 'version' ] ) ||
           empty( $params[ 'columns' ] ) ) {
-      hrhs_debug( 'HRHS_Database::create_table - Missing params, returning');
+      // hrhs_debug( 'HRHS_Database::create_table - Missing params, returning');
       return;
     }
 
@@ -97,7 +97,7 @@ class HRHS_Database {
     // Get the character set used by the DB
     $charset_collate = $wpdb->get_charset_collate();
     
-    hrhs_debug( 'HRHS_Database::create_table - Creating database table ' . $table_name );
+    // hrhs_debug( 'HRHS_Database::create_table - Creating database table ' . $table_name );
     // Build the SQL 'CREATE TABLE' command
     // FIXME: Need to add data type info to the columns
     $sql_columns = array();
@@ -127,12 +127,12 @@ class HRHS_Database {
   //        Might be worth using for no other reason than to hide the table prefixes from the rest of the plugin
   public static function insert_data( $params ) {
     global $wpdb;
-    hrhs_debug( 'HRHS_Database::insert_data called' );
+    // hrhs_debug( 'HRHS_Database::insert_data called' );
     
     // I don't want to mess with malformed params at this point, if required fields are missing return
     if (  empty( $params[ 'name' ] ) ||
     empty( $params[ 'data' ] ) ) {
-      hrhs_debug( 'HRHS_Database::insert_data - Missing params, returning');
+      // hrhs_debug( 'HRHS_Database::insert_data - Missing params, returning');
       return;
     }
     
@@ -146,12 +146,12 @@ class HRHS_Database {
 
   public static function get_results( $params ) {
     global $wpdb;
-    hrhs_debug( 'HRHS_Database::get_results called' );
+    // hrhs_debug( 'HRHS_Database::get_results called' );
     
     // I don't want to mess with malformed params at this point, if required fields are missing return
     // FIXME: For now, the only required field is the name of the table to be searched. Revisit this decision later
     if ( empty( $params[ 'name' ] ) ) {
-      hrhs_debug( 'HRHS_Database::get_results - Missing name param, returning empty array');
+      // hrhs_debug( 'HRHS_Database::get_results - Missing name param, returning empty array');
       return array();;
     }
 
@@ -160,35 +160,35 @@ class HRHS_Database {
     // If either the columns or needle params are empty, return all the results
     // FIXME: This seems like a good compromise, allows returning the entire table. Revisit this decision later.
     if ( empty( $params[ 'columns' ] ) || empty( $params[ 'needle' ] ) ) {
-      hrhs_debug( 'HRHS_Database::get_results - Missing columns or needle params, returning all the results' );
+      // hrhs_debug( 'HRHS_Database::get_results - Missing columns or needle params, returning all the results' );
       // FIXME: Actually return all the results here
       return array();
     }
 
-    hrhs_debug( sprintf( 'HRHS_Database::get_results - Searching for %s within the table %s with columns:', $params[ 'needle' ], $table_name ) );
-    hrhs_debug( $params[ 'columns' ] );
+    // hrhs_debug( sprintf( 'HRHS_Database::get_results - Searching for %s within the table %s with columns:', $params[ 'needle' ], $table_name ) );
+    // hrhs_debug( $params[ 'columns' ] );
     // Generate the placeholders used byt $wpd->prepare dynamically, the number of columns being searched is variable
     $placeholders = implode( ' OR ', array_map(
       function ( $column ) { return $column . ' LIKE %s'; },
       $params[ 'columns' ] )
     );
-    hrhs_debug( 'The placeholders string is:' );
-    hrhs_debug( $placeholders );
+    // hrhs_debug( 'The placeholders string is:' );
+    // hrhs_debug( $placeholders );
 
     // Build the SQL command, use $wpdb->prepare to sanitize the needle and get proper quoting for LIKE statement
     $wild = '%';
     $needle = $wild . $wpdb->esc_like( $params[ 'needle' ] ) . $wild;
-    hrhs_debug( 'The needle is: ' . $needle );
+    // hrhs_debug( 'The needle is: ' . $needle );
     $sql_command = $wpdb->prepare(
       "SELECT * FROM $table_name WHERE $placeholders",
       array_fill( 0, count( $params[ 'columns' ] ), $needle )
     );
-    hrhs_debug( 'The full SQL command is:' );
-    hrhs_debug( $sql_command );
+    // hrhs_debug( 'The full SQL command is:' );
+    // hrhs_debug( $sql_command );
 
     // Return the results of the database query
     $results = $wpdb->get_results( $sql_command, ARRAY_A );
-    hrhs_debug( sprintf( 'The search results (%d):', count( $results ) ) );
+    // hrhs_debug( sprintf( 'The search results (%d):', count( $results ) ) );
     // hrhs_debug( $results );
     return $results;
 

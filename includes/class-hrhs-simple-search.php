@@ -30,7 +30,7 @@ class HRHS_Simple_Search {
 
   public function __construct( $params = array() ) {
 
-    hrhs_debug( 'Inside HRHS_Simple_Search::__construct()' );
+    // hrhs_debug( 'Inside HRHS_Simple_Search::__construct()' );
 
     $this->needle = empty( $params[ 'needle' ] ) ? null : $params[ 'needle' ];
     
@@ -50,7 +50,7 @@ class HRHS_Simple_Search {
   }
 
   public function get_search_results( $params = array() ) {
-    hrhs_debug( sprintf( 'Inside display_search_results( %s )', var_export( $params, true ) ) );
+    // hrhs_debug( sprintf( 'Inside display_search_results( %s )', var_export( $params, true ) ) );
     // If params is empty or none of the fields are searchable, return an empty array
     if ( empty( $params ) || empty( $this->searchable_fields ) ) {
       return array();
@@ -62,7 +62,7 @@ class HRHS_Simple_Search {
 
     // Branch here, depending on if the search should be done with custom post types or custom database tables
     if ( $this->custom_post_types ) {
-      hrhs_debug( 'HRHS_Simple_Search::get_search_results - Searching custom post types' );
+      // hrhs_debug( 'HRHS_Simple_Search::get_search_results - Searching custom post types' );
 
       // Build a query for this haystack
       $meta_query = array(
@@ -109,7 +109,7 @@ class HRHS_Simple_Search {
       return $results;
 
     } else {
-      hrhs_debug( 'HRHS_Simple_Search::get_search_results - Searching custom database tables' );
+      // hrhs_debug( 'HRHS_Simple_Search::get_search_results - Searching custom database tables' );
 
       require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-database.php';
       $results = HRHS_Database::get_results( array(
