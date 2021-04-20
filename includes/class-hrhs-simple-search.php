@@ -14,8 +14,8 @@ class HRHS_Simple_Search {
   // or custom database tables ( using $wpdb->get_results( <SQL SELECT statement> ) )
   // FIXME: I could allow this to be configured by the constructor if the plugin needs to mix the types of data
   //        For now I'm keeping it static for all searches
-  private $custom_post_types = true;  // Search CPTs
-  // private $custom_post_types = false; // Search custom database tables
+  // private $custom_post_types = true;  // Search CPTs
+  private $custom_post_types = false; // Search custom database tables
 
   // These properties are filled in by the constructor
   private $needle = null;
@@ -60,7 +60,7 @@ class HRHS_Simple_Search {
     // TODO: Do I need to sanitize further since the needle is used in a MySQL query?
     $needle = strtolower( filter_var( trim( $params[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
 
-    // Branch here if the search should be done with custom post types or custom database tables
+    // Branch here, depending on if the search should be done with custom post types or custom database tables
     if ( $this->custom_post_types ) {
       hrhs_debug( 'HRHS_Simple_Search::get_search_results - Searching custom post types' );
 
@@ -85,9 +85,29 @@ class HRHS_Simple_Search {
   
       // hrhs_debug( 'Query:' );
       // hrhs_debug( $get_posts_query );
+
+      // Get the matching posts
+      $matching_post_ids = get_posts( $get_posts_query );
+
+      // Turn the array of post IDs into an array of arrays containing the postmeta data for each post
+      $results = array_map(
+        function ( $post_id ) {
+          $result[ 'id' ] = $post_id; // Using lower case 'id' here to match what is in the custom table
+
+          // Add the meta data to the result
+          $meta_data = get_post_meta( $post_id );
+          foreach ( $this->all_fields as $field ) {
+            $field_name = $field[ 'slug' ];
+            $result[ $field_name ] = array_key_exists( $field_name, $meta_data ) ? $meta_data[ $field_name ][0] : '';
+          }
+          return $result;
+        },
+        $matching_post_ids
+      );
   
       // Return the search results
-      return get_posts( $get_posts_query );
+      return $results;
+
     } else {
       hrhs_debug( 'HRHS_Simple_Search::get_search_results - Searching custom database tables' );
 

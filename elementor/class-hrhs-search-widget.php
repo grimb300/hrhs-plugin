@@ -187,8 +187,8 @@ final class HRHS_Search_Widget extends Widget_Base {
       // FIXME: There's an inconsistency between what is returned between the CPT and custom table flows.
       //        Move the complexity into hrhs_simple_search so the consumer doesn't need to know what is going on.
       $search_results = $search_obj->get_search_results( array( 'needle' => $needle ) );
-      hrhs_debug( 'get_search_results returned:' );
-      hrhs_debug( $search_results );
+      // hrhs_debug( 'get_search_results returned:' );
+      // hrhs_debug( $search_results );
       $num_results = count( $search_results );
       ?>
       <div class="hrhs_results_wrap">
@@ -203,25 +203,15 @@ final class HRHS_Search_Widget extends Widget_Base {
               <tbody>
                 <tr>
                   <?php foreach ( $display_fields as $field ) { ?>
-                    <th scope="col"><?php echo $field[ 'label' ]; ?></th>
+                  <th scope="col"><?php echo $field[ 'label' ]; ?></th>
                   <?php } ?>
                 </tr>
-                <?php foreach ( $search_results as $post_id ) { ?>
-                  <tr>
-                    <?php
-                    $result_meta_data = get_post_meta( $post_id );
-                    foreach( $display_fields as $field ) {
-                      $field_meta_name = $field[ 'slug' ];
-                      $field_meta_data =
-                        array_key_exists( $field_meta_name, $result_meta_data )
-                        ? $result_meta_data[ $field_meta_name ][0]
-                        : '';
-                      ?>
-                      <td><?php echo $field_meta_data; ?></td>
-                      <?php
-                    } // foreach $display_fields
-                    ?>
-                  </tr>
+                <?php foreach ( $search_results as $result ) { ?>
+                <tr>
+                  <?php foreach( $display_fields as $field ) { ?>
+                  <td><?php echo $result[ $field[ 'slug' ] ]; ?></td>
+                  <?php } // foreach $display_fields ?>
+                </tr>
                 <?php } // foreach $search_results ?>
               </tbody>
             </table>
