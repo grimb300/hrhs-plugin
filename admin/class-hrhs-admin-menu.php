@@ -114,8 +114,9 @@ class HRHS_Admin_Menu {
     ?>
     <div class="wrap">
       <h1 class="wp-heading-inline"><?php echo $post_type_def[ 'plural_name' ]; ?></h1>
-      <!-- The CPT has a "Add New" button in the h1 -->
-      <!-- The CPT has a bunch of search and table nav stuff here -->
+      <?php // The CPT has a "Add New" button in the h1 ?>
+      <?php // The CPT has a bunch of search and table nav stuff here ?>
+      <?php // FIXME: Decide if I need the search or the filter or the bulk actions like the CPT will have ?>
       <table class="wp-list-table widefat fixed striped table-view-list posts">
         <thead>
           <tr>
@@ -126,9 +127,13 @@ class HRHS_Admin_Menu {
             <?php foreach ( $post_type_def[ 'fields' ] as $field ) { ?>
               <?php $slug = $field[ 'slug' ]; ?>
               <?php $label = $field[ 'label' ]; ?>
+              <?php // If I implement sorting, need to add conditionals on the classes (sortable, sorted, asc, desc, etc) ?>
+              <?php // FIXME: Add link to anchor tag ?>
               <th id="<?php echo $slug; ?>" class="manage-column column-<?php echo $slug; ?> column-primary sortable desc" scope="col">
-                <!-- The CPT has a link and sorting indicator -->
-                <span><?php echo $label; ?></span>
+                <a href="">
+                  <span><?php echo $label; ?></span>
+                  <span class="sorting-indicator"></span>
+                </a>
               </th>
             <?php } ?>
           </tr>
@@ -140,19 +145,47 @@ class HRHS_Admin_Menu {
             <?php $post_id = $result[ 'id' ]; ?>
             <tr id="post-<?php echo $post_id; ?>" class="iedit author-self level-0 post-<?php echo $post_id; ?> type-name_entry status-publish hentry entry">
               <th class="check-column" scope="row">
-                <!-- The CPT has a label for the checkbox -->
+                <?php // The CPT has a label for the checkbox ?>
                 <input type="checkbox" name="post[]" id="cb-select-<?php echo $post_id; ?>" value="<?php echo $post_id; ?>">
-                <!-- The CPT has a div containing two spans for the locked indicator -->
+                <?php // The CPT has a div containing two spans for the locked indicator ?>
               </th>
-              <?php foreach ( $post_type_def[ 'fields' ] as $field ) { ?>
-                <?php $slug = $field[ 'slug' ]; ?>
-                <?php $label = $field[ 'label' ]; ?>
-                <td class="<?php echo $slug; ?> column-<?php echo $slug ?> has-row-actions column-primary page-<?php echo $slug; ?>" data-colname="<?php echo $label; ?>">
-                  <!-- The CPT contains locked-info, a hidden div, the "row-actions", and a button -->
-                  <strong>
-                    <!-- The CPT wraps the text with an anchor tag linking to the edit page -->
-                    <?php echo $result[ $slug ]; ?>
-                  </strong>
+              <?php foreach ( $post_type_def[ 'fields' ] as $index => $field ) { ?>
+                <?php
+                  $slug = $field[ 'slug' ];
+                  $label = $field[ 'label' ];
+                  // All columns get two classes by default
+                  $class_list = array( $slug, 'column-' . $slug );
+                  if ( 0 === $index ) {
+                    // The first column gets a few extra classes (maybe not all necessary)
+                    $class_list[] = 'has-row-actions';
+                    $class_list[] = 'column-primary';
+                    $class_list[] = 'page-' . $slug;
+                  }
+                ?>
+                <td class="<?php echo implode( ' ', $class_list ); ?>" data-colname="<?php echo $label; ?>">
+                  <?php
+                  /**
+                   * The CPT contains locked-info, a hidden div with various post info, the "row-actions", and a button (what is the button for?)
+                   * The CPT wraps the "title" text with a strong tag and an anchor tag linking to the edit page
+                   *     I suspect this is to indicate that clicking the "title" is the quick way to edit the post
+                   * FIXME: Do I want the anchor tag, if so where will the link take me?
+                   */
+                  ?>
+                  <?php echo $result[ $slug ]; ?>
+                  <?php
+                  // If this is the first column, add the "row-actions" div
+                  // FIXME: Do all of these actions make sense? Pick which ones need to work and add links to anchor tag
+                  if ( 0 === $index ) {
+                    ?>
+                    <div class="row-actions">
+                      <span class="edit"><a href="" aria-label="Edit <?php echo $post_id; ?>">Edit</a> | </span>
+                      <span class="inline hide-if-no-js"><button type="button" class="button-link editinline" aria-label="Quick edit <?php echo $post_id; ?> inline" aria-expanded="false">Quick&nbsp;Edit</button> | </span>
+                      <span class="trash"><a href="" class="submitdelete" aria-label="Move <?php echo $post_id; ?> to the Trash">Trash</a> | </span>
+                      <span class="view"><a href="" rel="bookmark" aria-label="View <?php echo $post_id; ?>">View</a></span>
+                    </div>
+                    <?php
+                  }
+                  ?>
                 </td>
               <?php } ?>
             </tr>
