@@ -161,9 +161,16 @@ class HRHS_Database {
     // FIXME: This seems like a good compromise, allows returning the entire table. Revisit this decision later.
     if ( empty( $params[ 'columns' ] ) || empty( $params[ 'needle' ] ) ) {
       // hrhs_debug( 'HRHS_Database::get_results - Missing columns or needle params, returning all the results' );
-      // FIXME: Actually return all the results here
-      return array();
-    }
+      $sql_command = "SELECT * FROM $table_name LIMIT 20;";
+      // hrhs_debug( 'The full SQL command is:' );
+      // hrhs_debug( $sql_command );
+  
+      // Return the results of the database query
+      $results = $wpdb->get_results( $sql_command, ARRAY_A );
+      // hrhs_debug( sprintf( 'The search results (%d):', count( $results ) ) );
+      // hrhs_debug( $results );
+      return $results;
+      }
 
     // hrhs_debug( sprintf( 'HRHS_Database::get_results - Searching for %s within the table %s with columns:', $params[ 'needle' ], $table_name ) );
     // hrhs_debug( $params[ 'columns' ] );
