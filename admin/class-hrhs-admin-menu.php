@@ -114,7 +114,46 @@ class HRHS_Admin_Menu {
     ?>
     <div class="wrap">
       <h1 class="wp-heading-inline"><?php echo $post_type_def[ 'plural_name' ]; ?></h1>
-      <?php // The CPT has a "Add New" button in the h1 ?>
+      <?php // FIXME: Add link to anchor tag ?>
+      <a href="" class="page-title-action">Add New</a>
+      <hr class="wp-header-end">
+      <h2 class="screen-reader-text">Filter posts list</h2>
+      <?php // FIXME: Are these filters needed? If so, add link to anchor tag ?>
+      <ul class="subsubsub">
+        <li class="all"><a href="">All <span class="count">(###)</span></a> |</li>
+        <li class="publish"><a href="">Published <span class="count">(###)</span></a> |</li>
+        <li class="draft"><a href="">Draft <span class="count">(###)</span></a> |</li>
+        <li class="trash"><a href="">Trash <span class="count">(###)</span></a></li>
+      </ul>
+      <form id="posts-filter" method="get">
+        <p class="search-box">
+          <label for="post-search-input" class="screen-reader-text">Search Posts:</label>
+          <input type="search" name="s" id="post-search-input" value>
+          <input type="submit" id="search-submit" class="button" value="Search Posts">
+        </p>
+        <input type="hidden" name="post_status" class="post_status_page" value="all">
+        <input type="hidden" name="post_type" class="post_type_page" value="name_entry">
+        <input type="hidden" id="_wpnonce" name="_wpnonce" value="foobarbaz">
+        <input type="hidden" name="_wp_http_referer" value="/wp-admin/edit.php?s&post_status=all&post_type=name_entry&action=-1&m=0&paged=5&action2=-1">
+        <div class="tablenav top">
+          <div class="alignleft actions bulactions">
+            <label for="bulk-action-selector-top" class="screen-reader-text">Select bulk action</label>
+            <select name="action" id="bulk-action-selector-top">
+              <option value="-1">Bulk actions</option>
+              <option value="edit" class="hide-if-no-js">Edit</option>
+              <option value="trash">Move to Trash</option>
+            </select>
+            <input type="submit" id="doaction" class="button action" value="Apply">
+          </div>
+          <div class="alignleft actions">
+            <?php
+            /**
+             * Start again here in the morning!!!!!
+             */
+            ?>
+          </div>
+        </div>
+      </form>
       <?php // The CPT has a bunch of search and table nav stuff here ?>
       <?php // FIXME: Decide if I need the search or the filter or the bulk actions like the CPT will have ?>
       <table class="wp-list-table widefat fixed striped table-view-list posts">
