@@ -200,5 +200,28 @@ class HRHS_Database {
     return $results;
 
   }
- 
+
+  public static function get_count( $params ) {
+    global $wpdb;
+    // hrhs_debug( 'HRHS_Database::get_results called' );
+    
+    // I don't want to mess with malformed params at this point, if required fields are missing return
+    // FIXME: For now, the only required field is the name of the table to be searched. Revisit this decision later
+    if ( empty( $params[ 'name' ] ) ) {
+      // hrhs_debug( 'HRHS_Database::get_results - Missing name param, returning empty array');
+      return array();;
+    }
+
+    $table_name = self::gen_table_name( $params[ 'name' ] );
+
+    // FIXME: For now, assume that the count is for the entire table (no search or filter)
+    $sql_command = "SELECT COUNT(*) FROM $table_name;";
+    
+    // Return the results of the database count query
+    $results = $wpdb->get_results( $sql_command, ARRAY_A );
+    // hrhs_debug( 'HRHS_Database::get_count - The count results:' );
+    // hrhs_debug( $results );
+    return intval( $results[0][ 'COUNT(*)' ] );
+  }
+
 }

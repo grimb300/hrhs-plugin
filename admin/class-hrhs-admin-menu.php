@@ -111,6 +111,11 @@ class HRHS_Admin_Menu {
     // hrhs_debug( 'post_type_def:' );
     // hrhs_debug( $post_type_def );
 
+    // Get the total number of records
+    require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-database.php';
+    $results_count = HRHS_Database::get_count( array( 'name' => $post_type_slug ) );
+    // hrhs_debug( sprintf( 'Total %s entries: %d', $post_type_slug, $results_count ) );
+
     ?>
     <div class="wrap">
       <h1 class="wp-heading-inline"><?php echo $post_type_def[ 'plural_name' ]; ?></h1>
@@ -120,7 +125,7 @@ class HRHS_Admin_Menu {
       <h2 class="screen-reader-text">Filter posts list</h2>
       <?php // FIXME: Are these filters needed? If so, add link to anchor tag ?>
       <ul class="subsubsub">
-        <li class="all"><a href="">All <span class="count">(###)</span></a> |</li>
+        <li class="all"><a href="">All <span class="count">(<?php echo number_format( $results_count ); ?>)</span></a> |</li>
         <li class="publish"><a href="">Published <span class="count">(###)</span></a> |</li>
         <li class="draft"><a href="">Draft <span class="count">(###)</span></a> |</li>
         <li class="trash"><a href="">Trash <span class="count">(###)</span></a></li>
@@ -155,7 +160,7 @@ class HRHS_Admin_Menu {
           </div>
           <h2 class="screen-reader-text">Posts list navigation</h2>
           <div class="tablenav-pages">
-            <span class="displaying-num">### items</span>
+            <span class="displaying-num"><?php echo number_format( $results_count ); ?> items</span>
             <span class="pagination-links">
               <a href="" class="first-page button">
                 <span class="screen-reader-text">First page</span>
