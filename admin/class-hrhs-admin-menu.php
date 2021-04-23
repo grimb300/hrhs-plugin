@@ -146,91 +146,158 @@ class HRHS_Admin_Menu {
             <input type="submit" id="doaction" class="button action" value="Apply">
           </div>
           <div class="alignleft actions">
-            <?php
-            /**
-             * Start again here in the morning!!!!!
-             */
-            ?>
+            <label for="filter-by-date" class="screen-reader-text">Filter by date</label>
+            <select name="m" id="filter-by-date">
+              <option selected="selected" value="0">All dates</option>
+              <option value="202103">March 20201</option>
+            </select>
+            <input type="submit" name="filter_action" id="post-query-submit" class="button" value="Filter">
+          </div>
+          <h2 class="screen-reader-text">Posts list navigation</h2>
+          <div class="tablenav-pages">
+            <span class="displaying-num">### items</span>
+            <span class="pagination-links">
+              <a href="" class="first-page button">
+                <span class="screen-reader-text">First page</span>
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+              <a href="" class="prev-page button">
+                <span class="screen-reader-text">Previous page</span>
+                <span aria-hidden="true">&lsaquo;</span>
+              </a>
+              <span class="paging-input">
+                <label for="current-page-selector" class="screen-reader-text">Current page</label>
+                <input type="text" class="current-page" id="current-page-selector" name="paged" value="1" size="2" aria-describedby="table-paging">
+                <span class="tablenav-paging-text"> of <span class="total-pages">###</span></span>
+              </span>
+              <a href="" class="next-page button">
+                <span class="screen-reader-text">Next page</span>
+                <span aria-hidden="true">&rsaquo;</span>
+              </a>
+              <a href="" class="last-page button">
+                <span class="screen-reader-text">Last page</span>
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </span>
+          </div>
+          <br class="clear">
+        </div>
+        <h2 class="screen-reader-text">Posts list</h2>
+        <table class="wp-list-table widefat fixed striped table-view-list posts">
+          <thead>
+            <tr>
+              <td id="cb" class="manage-column column-cb check-column">
+                <label for="cb-select-all-1" class="screen-reader-text">Select All</label>
+                <input type="checkbox" id="cb-select-all-1">
+              </td>
+              <?php foreach ( $post_type_def[ 'fields' ] as $field ) { ?>
+                <?php $slug = $field[ 'slug' ]; ?>
+                <?php $label = $field[ 'label' ]; ?>
+                <?php // If I implement sorting, need to add conditionals on the classes (sortable, sorted, asc, desc, etc) ?>
+                <?php // FIXME: Add link to anchor tag ?>
+                <th id="<?php echo $slug; ?>" class="manage-column column-<?php echo $slug; ?> column-primary sortable desc" scope="col">
+                  <a href="">
+                    <span><?php echo $label; ?></span>
+                    <span class="sorting-indicator"></span>
+                  </a>
+                </th>
+              <?php } ?>
+            </tr>
+          </thead>
+          <tbody id="the-list">
+            <?php require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-database.php'; ?>
+            <?php $results = HRHS_Database::get_results( array( 'name' => $post_type_slug ) ); ?>
+            <?php foreach ( $results as $result ) { ?>
+              <?php $post_id = $result[ 'id' ]; ?>
+              <tr id="post-<?php echo $post_id; ?>" class="iedit author-self level-0 post-<?php echo $post_id; ?> type-name_entry status-publish hentry entry">
+                <th class="check-column" scope="row">
+                  <?php // The CPT has a label for the checkbox ?>
+                  <input type="checkbox" name="post[]" id="cb-select-<?php echo $post_id; ?>" value="<?php echo $post_id; ?>">
+                  <?php // The CPT has a div containing two spans for the locked indicator ?>
+                </th>
+                <?php foreach ( $post_type_def[ 'fields' ] as $index => $field ) { ?>
+                  <?php
+                    $slug = $field[ 'slug' ];
+                    $label = $field[ 'label' ];
+                    // All columns get two classes by default
+                    $class_list = array( $slug, 'column-' . $slug );
+                    if ( 0 === $index ) {
+                      // The first column gets a few extra classes (maybe not all necessary)
+                      $class_list[] = 'has-row-actions';
+                      $class_list[] = 'column-primary';
+                      $class_list[] = 'page-' . $slug;
+                    }
+                  ?>
+                  <td class="<?php echo implode( ' ', $class_list ); ?>" data-colname="<?php echo $label; ?>">
+                    <?php
+                    /**
+                     * The CPT contains locked-info, a hidden div with various post info, the "row-actions", and a button (what is the button for?)
+                     * The CPT wraps the "title" text with a strong tag and an anchor tag linking to the edit page
+                     *     I suspect this is to indicate that clicking the "title" is the quick way to edit the post
+                     * FIXME: Do I want the anchor tag, if so where will the link take me?
+                     */
+                    ?>
+                    <?php echo $result[ $slug ]; ?>
+                    <?php
+                    // If this is the first column, add the "row-actions" div
+                    // FIXME: Do all of these actions make sense? Pick which ones need to work and add links to anchor tag
+                    if ( 0 === $index ) {
+                      ?>
+                      <div class="row-actions">
+                        <span class="edit"><a href="" aria-label="Edit <?php echo $post_id; ?>">Edit</a> | </span>
+                        <span class="inline hide-if-no-js"><button type="button" class="button-link editinline" aria-label="Quick edit <?php echo $post_id; ?> inline" aria-expanded="false">Quick&nbsp;Edit</button> | </span>
+                        <span class="trash"><a href="" class="submitdelete" aria-label="Move <?php echo $post_id; ?> to the Trash">Trash</a> | </span>
+                        <span class="view"><a href="" rel="bookmark" aria-label="View <?php echo $post_id; ?>">View</a></span>
+                      </div>
+                      <?php
+                    }
+                    ?>
+                  </td>
+                <?php } ?>
+              </tr>
+            <?php } ?>
+          </tbody>
+        </table>
+        <div class="tablenav bottom">
+          <div class="alignleft actions bulactions">
+            <label for="bulk-action-selector-bottom" class="screen-reader-text">Select bulk action</label>
+            <select name="action" id="bulk-action-selector-bottom">
+              <option value="-1">Bulk actions</option>
+              <option value="edit" class="hide-if-no-js">Edit</option>
+              <option value="trash">Move to Trash</option>
+            </select>
+            <input type="submit" id="doaction" class="button action" value="Apply">
+          </div>
+          <div class="alignleft actions">
+          </div>
+          <div class="tablenav-pages">
+            <span class="displaying-num">### items</span>
+            <span class="pagination-links">
+              <a href="" class="first-page button">
+                <span class="screen-reader-text">First page</span>
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+              <a href="" class="prev-page button">
+                <span class="screen-reader-text">Previous page</span>
+                <span aria-hidden="true">&lsaquo;</span>
+              </a>
+              <span class="paging-input">
+                <label for="current-page-selector" class="screen-reader-text">Current page</label>
+                <input type="text" class="current-page" id="current-page-selector" name="paged" value="1" size="2" aria-describedby="table-paging">
+                <span class="tablenav-paging-text"> of <span class="total-pages">###</span></span>
+              </span>
+              <a href="" class="next-page button">
+                <span class="screen-reader-text">Next page</span>
+                <span aria-hidden="true">&rsaquo;</span>
+              </a>
+              <a href="" class="last-page button">
+                <span class="screen-reader-text">Last page</span>
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </span>
           </div>
         </div>
       </form>
-      <?php // The CPT has a bunch of search and table nav stuff here ?>
-      <?php // FIXME: Decide if I need the search or the filter or the bulk actions like the CPT will have ?>
-      <table class="wp-list-table widefat fixed striped table-view-list posts">
-        <thead>
-          <tr>
-            <td id="cb" class="manage-column column-cb check-column">
-              <label for="cb-select-all-1" class="screen-reader-text">Select All</label>
-              <input type="checkbox" id="cb-select-all-1">
-            </td>
-            <?php foreach ( $post_type_def[ 'fields' ] as $field ) { ?>
-              <?php $slug = $field[ 'slug' ]; ?>
-              <?php $label = $field[ 'label' ]; ?>
-              <?php // If I implement sorting, need to add conditionals on the classes (sortable, sorted, asc, desc, etc) ?>
-              <?php // FIXME: Add link to anchor tag ?>
-              <th id="<?php echo $slug; ?>" class="manage-column column-<?php echo $slug; ?> column-primary sortable desc" scope="col">
-                <a href="">
-                  <span><?php echo $label; ?></span>
-                  <span class="sorting-indicator"></span>
-                </a>
-              </th>
-            <?php } ?>
-          </tr>
-        </thead>
-        <tbody id="the-list">
-          <?php require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-database.php'; ?>
-          <?php $results = HRHS_Database::get_results( array( 'name' => $post_type_slug ) ); ?>
-          <?php foreach ( $results as $result ) { ?>
-            <?php $post_id = $result[ 'id' ]; ?>
-            <tr id="post-<?php echo $post_id; ?>" class="iedit author-self level-0 post-<?php echo $post_id; ?> type-name_entry status-publish hentry entry">
-              <th class="check-column" scope="row">
-                <?php // The CPT has a label for the checkbox ?>
-                <input type="checkbox" name="post[]" id="cb-select-<?php echo $post_id; ?>" value="<?php echo $post_id; ?>">
-                <?php // The CPT has a div containing two spans for the locked indicator ?>
-              </th>
-              <?php foreach ( $post_type_def[ 'fields' ] as $index => $field ) { ?>
-                <?php
-                  $slug = $field[ 'slug' ];
-                  $label = $field[ 'label' ];
-                  // All columns get two classes by default
-                  $class_list = array( $slug, 'column-' . $slug );
-                  if ( 0 === $index ) {
-                    // The first column gets a few extra classes (maybe not all necessary)
-                    $class_list[] = 'has-row-actions';
-                    $class_list[] = 'column-primary';
-                    $class_list[] = 'page-' . $slug;
-                  }
-                ?>
-                <td class="<?php echo implode( ' ', $class_list ); ?>" data-colname="<?php echo $label; ?>">
-                  <?php
-                  /**
-                   * The CPT contains locked-info, a hidden div with various post info, the "row-actions", and a button (what is the button for?)
-                   * The CPT wraps the "title" text with a strong tag and an anchor tag linking to the edit page
-                   *     I suspect this is to indicate that clicking the "title" is the quick way to edit the post
-                   * FIXME: Do I want the anchor tag, if so where will the link take me?
-                   */
-                  ?>
-                  <?php echo $result[ $slug ]; ?>
-                  <?php
-                  // If this is the first column, add the "row-actions" div
-                  // FIXME: Do all of these actions make sense? Pick which ones need to work and add links to anchor tag
-                  if ( 0 === $index ) {
-                    ?>
-                    <div class="row-actions">
-                      <span class="edit"><a href="" aria-label="Edit <?php echo $post_id; ?>">Edit</a> | </span>
-                      <span class="inline hide-if-no-js"><button type="button" class="button-link editinline" aria-label="Quick edit <?php echo $post_id; ?> inline" aria-expanded="false">Quick&nbsp;Edit</button> | </span>
-                      <span class="trash"><a href="" class="submitdelete" aria-label="Move <?php echo $post_id; ?> to the Trash">Trash</a> | </span>
-                      <span class="view"><a href="" rel="bookmark" aria-label="View <?php echo $post_id; ?>">View</a></span>
-                    </div>
-                    <?php
-                  }
-                  ?>
-                </td>
-              <?php } ?>
-            </tr>
-          <?php } ?>
-        </tbody>
-      </table>
     </div>
     <?php
   }
