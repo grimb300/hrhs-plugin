@@ -58,14 +58,14 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     
     // FIXME: Are there any settings I need for the search results?
     //        More importantly, do I need a controls section if there are no controls?
-    $this->start_controls_section(
-      'section_content',
-      array(
-        'label' => 'Content'
-      )
-    );
+    // $this->start_controls_section(
+    //   'section_content',
+    //   array(
+    //     'label' => 'Content'
+    //   )
+    // );
 
-    $this->end_controls_section();
+    // $this->end_controls_section();
   }
 
   // Render the widget output on the frontend
