@@ -22,7 +22,7 @@ class HRHS_Simple_Search {
 
   public function __construct( $params = array() ) {
 
-    hrhs_debug( 'Inside HRHS_Simple_Search::__construct()' );
+    // hrhs_debug( 'Inside HRHS_Simple_Search::__construct()' );
 
     $this->needle = empty( $params[ 'needle' ] ) ? null : $params[ 'needle' ];
     
@@ -42,21 +42,46 @@ class HRHS_Simple_Search {
   }
 
   public function get_search_results( $params = array() ) {
-    hrhs_debug( sprintf( 'Inside display_search_results( %s )', var_export( $params, true ) ) );
+    // hrhs_debug( sprintf( 'Inside display_search_results( %s )', var_export( $params, true ) ) );
     // If params is empty or none of the fields are searchable, return an empty array
     if ( empty( $params ) || empty( $this->searchable_fields ) ) {
       return array();
     }
 
+    ////////////////////////
     // Get the params
+
+    // Get the needle
     // TODO: Do I need to sanitize further since the needle is used in a MySQL query?
     $needle = strtolower( filter_var( trim( $params[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
+
+    // Get the fields
+    // Default is $this->searchable_fields, but can be changed by $params[ 'fields' ]
+    $params_fields = empty( $params[ 'fields' ] ) ? array() : $params[ 'fields' ];
+    // hrhs_debug( 'params_fields:' );
+    // hrhs_debug( $params_fields );
+    $filtered_fields = array_filter(
+      $this->searchable_fields,
+        // function... use... pulls $params_fields into the filter function scope
+        function( $field ) use ( $params_fields ) {
+        return in_array( $field[ 'slug' ], $params_fields );
+      }
+    );
+    // FIXME: Need a "default_searchable_fields" eventually
+    $search_fields = empty( $filtered_fields ) ? $this->searchable_fields : $filtered_fields;
+    // hrhs_debug( 'All searchable fields:' );
+    // hrhs_debug( $this->searchable_fields );
+    // hrhs_debug( 'Filtered search fields:' );
+    // hrhs_debug( $search_fields );
+
+    // Done getting the params
+    //////////////////////////
 
     // Build a query for this haystack
     $meta_query = array(
       'relation' => 'OR', // Needle must match at least one field
     );
-    foreach( $this->searchable_fields as $field ) {
+    foreach( $search_fields as $field ) {
       $meta_query[ $field[ 'slug' ] . '_clause' ] = array(
         'key' => $field[ 'slug' ],
         'value' => $needle,   // NOTE: Using LIKE will automagically add

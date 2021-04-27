@@ -21,12 +21,12 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
     wp_register_style( 'hrhs_search_styles_css', HRHS_PLUGIN_URL . 'css/hrhs-search-styles.css', array(), $hrhs_search_styles_css_ver );
   }
 
-  // Retreive the widget name
+  // Retrieve the widget name
   public function get_name() {
     return 'hrhs_search_form_widget';
   }
 
-  // Retreive the widget title
+  // Retrieve the widget title
   public function get_title() {
     return 'HRHS Search Form';
   }
@@ -149,11 +149,7 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
     $haystack = $settings[ 'search_type' ];
     
     // Instantiate the "simple_search" object for this needle/haystack
-    $search_obj = new HRHS_Simple_Search( array(
-      // 'needle' => $needle,
-      'haystack' => $haystack,
-      // 'fields' => $selected_fields
-    ) );  
+    $search_obj = new HRHS_Simple_Search( array( 'haystack' => $haystack ) );  
       
     // Get the searchable fields for this haystack
     $searchable_fields = $search_obj->get_search_fields();
@@ -165,8 +161,8 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
       $searchable_fields
     );
     if ( ! empty ( $_GET[ 'search_fields' ] ) ) {
-      hrhs_debug( 'search_fields:' );
-      hrhs_debug( $_GET[ 'search_fields' ] );
+      // hrhs_debug( 'search_fields:' );
+      // hrhs_debug( $_GET[ 'search_fields' ] );
       $selected_fields = $_GET[ 'search_fields' ];
     }
 

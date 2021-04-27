@@ -26,12 +26,12 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     return 'hrhs_search_results_widget';
   }
 
-  // Retreive the widget title
+  // Retrieve the widget title
   public function get_title() {
     return 'HRHS Search Results';
   }
 
-  // Retreive the widget icon
+  // Retrieve the widget icon
   public function get_icon() {
     // FIXME: This is from the tutorial
     return 'fa fa-pencil';
@@ -91,7 +91,16 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     <?php
     // If a needle was provided, display the search results
     if ( null !== $search_obj ) {
-      $search_results = $search_obj->get_search_results( array( 'needle' => $needle ) );
+      // Get the selected search fields (if present)
+      $selected_fields = empty( $_GET[ 'search_fields' ] ) ? array() : $_GET[ 'search_fields' ];
+      // hrhs_debug( 'SearchResultsWidget: Selected fields' );
+      // hrhs_debug( $selected_fields );
+      $search_results = $search_obj->get_search_results(
+        array(
+          'needle' => $needle,
+          'fields' => $selected_fields,
+        )
+      );
       $num_results = count( $search_results );
       ?>
       <div class="hrhs_search_results_wrap">
