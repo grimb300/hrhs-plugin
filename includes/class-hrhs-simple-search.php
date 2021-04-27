@@ -15,6 +15,8 @@ class HRHS_Simple_Search {
   private $all_fields = array();
   private $searchable_fields = array();
   private $displayable_fields = array();
+  private $default_search = array();
+  private $default_sort = array();
 
   /* *******
    * Methods
@@ -39,6 +41,41 @@ class HRHS_Simple_Search {
     $this->searchable_fields = $this->filter_fields_by_user_status( $this->all_fields, 'search' );
     $this->displayable_fields = $this->filter_fields_by_user_status( $this->all_fields, 'display' );
 
+    // Further filter the searchable fields by the 'default_search' param
+    $default_search = array_filter(
+      $this->searchable_fields,
+      function( $field ) {
+        return ! empty( $field[ 'default_search' ] ) && boolval( $field[ 'default_search' ] );
+      }
+    );
+    // If empty, default to the searchable_fields
+    $this->default_search = empty( $default_search ) ? $this->searchable_fields : $default_search;
+
+    // Filter and order the displayable fields by the 'default_sort' param
+    $default_sort = array_filter(
+      $this->displayable_fields,
+      function( $field ) {
+        return ! empty( $field[ 'default_sort' ] ) && is_int( $field[ 'default_sort' ] );
+      }
+    );
+    // hrhs_debug( 'default_sort after filter' );
+    // hrhs_debug( $default_sort );
+    // NOTE: usort sorts in place
+    usort(
+      $default_sort,
+      function( $field_a, $field_b ) {
+        $a_sort = $field_a[ 'default_sort' ];
+        $b_sort = $field_b[ 'default_sort' ];
+        if ( $a_sort === $b_sort ) {
+          return 0;
+        }
+        return $a_sort < $b_sort ? -1 : 1;
+      }
+    );
+    // hrhs_debug( 'default_sort after usort' );
+    // hrhs_debug( $default_sort );
+    $this->default_sort = $default_sort;
+
   }
 
   public function get_search_results( $params = array() ) {
@@ -56,7 +93,7 @@ class HRHS_Simple_Search {
     $needle = strtolower( filter_var( trim( $params[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
 
     // Get the fields
-    // Default is $this->searchable_fields, but can be changed by $params[ 'fields' ]
+    // Default is $this->default_search, but can be changed by $params[ 'fields' ]
     $params_fields = empty( $params[ 'fields' ] ) ? array() : $params[ 'fields' ];
     // hrhs_debug( 'params_fields:' );
     // hrhs_debug( $params_fields );
@@ -67,8 +104,7 @@ class HRHS_Simple_Search {
         return in_array( $field[ 'slug' ], $params_fields );
       }
     );
-    // FIXME: Need a "default_searchable_fields" eventually
-    $search_fields = empty( $filtered_fields ) ? $this->searchable_fields : $filtered_fields;
+    $search_fields = empty( $filtered_fields ) ? $this->default_search : $filtered_fields;
     // hrhs_debug( 'All searchable fields:' );
     // hrhs_debug( $this->searchable_fields );
     // hrhs_debug( 'Filtered search fields:' );
@@ -127,6 +163,16 @@ class HRHS_Simple_Search {
   // Get the display fields
   public function get_display_fields() {
     return $this->displayable_fields;
+  }
+
+  // Get the default search fields
+  public function get_default_search() {
+    return $this->default_search;
+  }
+
+  // Get the default sort order
+  public function get_default_sort() {
+    return $this->default_sort;
   }
   
   // Filter fields based on the attribute and user status

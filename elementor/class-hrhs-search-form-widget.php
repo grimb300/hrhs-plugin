@@ -157,8 +157,8 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
 
     // Get the selected search fields (if present)
     $selected_fields = array_map(
-      function ( $f ) { return $f[ 'slug' ]; },
-      $searchable_fields
+      function ( $field ) { return $field[ 'slug' ]; },
+      $search_obj->get_default_search()
     );
     if ( ! empty ( $_GET[ 'search_fields' ] ) ) {
       // hrhs_debug( 'search_fields:' );
