@@ -10,7 +10,7 @@ use HRHSPlugin\HRHS_Options;
 use HRHSPlugin\HRHS_Simple_Search;
 use function HRHSPlugin\hrhs_debug;
 
-final class HRHS_Search_Widget extends Widget_Base {
+final class HRHS_Search_Form_Widget extends Widget_Base {
 
   // Class constructor
   public function __construct( $data = array(), $args = null ) {
@@ -23,12 +23,12 @@ final class HRHS_Search_Widget extends Widget_Base {
 
   // Retreive the widget name
   public function get_name() {
-    return 'hrhs_search_widget';
+    return 'hrhs_search_form_widget';
   }
 
   // Retreive the widget title
   public function get_title() {
-    return 'HRHS Search';
+    return 'HRHS Search Form';
   }
 
   // Retreive the widget icon
@@ -54,7 +54,7 @@ final class HRHS_Search_Widget extends Widget_Base {
   // Register the widget controls
   // Adds different input fields to allow the user to change and customize the widget settings
   protected function _register_controls() {
-    // hrhs_debug( 'Inside HRHS_Search_Widget::_register_controls()');
+    // hrhs_debug( 'Inside HRHS_Search_Form_Widget::_register_controls()');
 
     // Get the various CPTs that could be searched out of options
     require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-options.php';
