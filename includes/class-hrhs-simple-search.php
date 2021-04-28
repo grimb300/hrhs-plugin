@@ -155,7 +155,12 @@ class HRHS_Simple_Search {
   //   return boolval( get_query_var( $this->slug, false ) );
   // }
 
-  // Get the search fields
+  // Get all searchable fields (regardless of user status)
+  public function get_all_search_fields() {
+    return $this->filter_fields_by_attribute( $this->all_fields, 'search' );
+  }
+
+  // Get the user searchable fields
   public function get_search_fields() {
     return $this->searchable_fields;
   }
@@ -179,7 +184,7 @@ class HRHS_Simple_Search {
   private function filter_fields_by_user_status( $all_fields = array(), $filter_attribute = 'none' ) {
     // Filter criteria:
     //   1. If the provided filter_attribute is missing or "none", return all fields
-    //   2. if the field attribute is "all", return that field
+    //   2. If the field attribute is "all", return that field
     //   3. If the field attribute is "member", return if the user is logged in
     return array_filter(
       $all_fields,
@@ -187,6 +192,20 @@ class HRHS_Simple_Search {
         return  ( 'none' === $filter_attribute ) ||
                 ( 'all' === $field[ $filter_attribute ] ) ||
                 ( is_user_logged_in() && ( 'member' === $field[ $filter_attribute ] ) );
+      }
+    );
+  }
+
+  // Filter fields based on the attribute for any user
+  private function filter_fields_by_attribute( $all_fields = array(), $filter_attribute = 'none' ) {
+    // Filter criteria:
+    //   1. If the provided filter_attribute is missing or "none", return all fields
+    //   2. If the field attribute is anything other than "none", return that field
+    return array_filter(
+      $all_fields,
+      function( $field ) use ( $filter_attribute ) {
+        return  ( 'none' === $filter_attribute ) ||
+                ( 'none' !== $field[ $filter_attribute ] );
       }
     );
   }

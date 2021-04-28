@@ -152,8 +152,9 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
     $search_obj = new HRHS_Simple_Search( array( 'haystack' => $haystack ) );  
       
     // Get the searchable fields for this haystack
-    $searchable_fields = $search_obj->get_search_fields();
-    $not_searchable = empty( $searchable_fields );
+    $possible_searchable_fields = $search_obj->get_all_search_fields();
+    $user_searchable_fields = $search_obj->get_search_fields();
+    $not_searchable = empty( $user_searchable_fields );
 
     // Get the selected search fields (if present)
     $selected_fields = array_map(
@@ -185,15 +186,18 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
           <input type="text" name="search" id="hrhs-search-needle" value="<?php echo $needle; ?>">
           <?php
           // If there is more than one searchable field, add checkboxes for the fields to search
-          if ( count( $searchable_fields ) > 1 ) {
-            foreach ( $searchable_fields as $field ) {
+          if ( count( $possible_searchable_fields ) > 1 ) {
+            foreach ( $possible_searchable_fields as $field ) {
               $slug = $field[ 'slug' ];
               $label = $field[ 'label' ];
               $checked = in_array( $slug, $selected_fields ) ? ' checked' : '';
+              $disabled = $field[ 'search' ] === 'member' && ! is_user_logged_in() ? ' disabled' : '';
               // NOTE: Using "search_fields[]" for the checkboxes works for some frameworks (PHP being one)
               ?>
-              <input type="checkbox" name="search_fields[]" id="hrhs-search-field-<?php echo $slug; ?>" value="<?php echo $slug; ?>"<?php echo $checked; ?>>
-              <label for="hrhs-search-field-<?php echo $slug; ?>"><?php echo $label; ?></label>
+              <label for="hrhs-search-field-<?php echo $slug; ?>">
+                <input type="checkbox" name="search_fields[]" id="hrhs-search-field-<?php echo $slug; ?>" value="<?php echo $slug; ?>"<?php echo $checked; ?><?php echo $disabled; ?>>
+                <span> <?php echo $label; ?><?php echo empty( $disabled ) ? '' : ' (members only)'; ?></span>
+              </label>
               <?php
             }
           }
