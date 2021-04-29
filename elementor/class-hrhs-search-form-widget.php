@@ -108,6 +108,16 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
     );
 
     $this->add_control(
+      'num_results',
+      array(
+        'label' => 'Default Search Results Per Page',
+        'type' => Controls_Manager::SELECT,
+        'options' => array( '10, 25', '50', 'all' ),
+        'default' => '50'
+      )
+    );
+
+    $this->add_control(
     'button_text',
     array(
       'label' => 'Search Button Text',
@@ -187,19 +197,42 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
           <?php
           // If there is more than one searchable field, add checkboxes for the fields to search
           if ( count( $possible_searchable_fields ) > 1 ) {
-            foreach ( $possible_searchable_fields as $field ) {
-              $slug = $field[ 'slug' ];
-              $label = $field[ 'label' ];
-              $checked = in_array( $slug, $selected_fields ) ? ' checked' : '';
-              $disabled = $field[ 'search' ] === 'member' && ! is_user_logged_in() ? ' disabled' : '';
-              // NOTE: Using "search_fields[]" for the checkboxes works for some frameworks (PHP being one)
-              ?>
-              <label for="hrhs-search-field-<?php echo $slug; ?>">
-                <input type="checkbox" name="search_fields[]" id="hrhs-search-field-<?php echo $slug; ?>" value="<?php echo $slug; ?>"<?php echo $checked; ?><?php echo $disabled; ?>>
-                <span> <?php echo $label; ?><?php echo empty( $disabled ) ? '' : ' (members only)'; ?></span>
-              </label>
+            ?>
+            <fieldset id="hrhs-search-fields">
+              <legend>Search Fields:</legend>
               <?php
-            }
+              foreach ( $possible_searchable_fields as $field ) {
+                $slug = $field[ 'slug' ];
+                $label = $field[ 'label' ];
+                $checked = in_array( $slug, $selected_fields ) ? ' checked' : '';
+                $disabled = $field[ 'search' ] === 'member' && ! is_user_logged_in() ? ' disabled' : '';
+                // NOTE: Using "search_fields[]" for the checkboxes works for some frameworks (PHP being one)
+                ?>
+                <label for="hrhs-search-field-<?php echo $slug; ?>">
+                  <input type="checkbox" name="search_fields[]" id="hrhs-search-field-<?php echo $slug; ?>" value="<?php echo $slug; ?>"<?php echo $checked; ?><?php echo $disabled; ?>>
+                  <span> <?php echo $label; ?><?php echo empty( $disabled ) ? '' : ' (members only)'; ?></span>
+                </label>
+                <?php
+              }
+              ?>
+            </fieldset>
+            <fieldset id="hrhs-search-results-per-page">
+              <legend>Results per page:</legend>
+              <select name="num_results" id="hrhs-search-results-per-page-select">
+                <?php
+                // FIXME: Need to make this a class property
+                $num_results_options = array( '10', '25', '50', 'all' );
+                foreach ( $num_results_options as $option ) {
+                  $num_results = empty( $_GET[ 'num_results' ] ) ? $settings[ 'num_results' ] : $_GET[ 'num_results' ];
+                  $selected = $option === $num_results ? ' selected' : '';
+                  ?>
+                  <option value="<?php echo $option; ?>"<?php echo $selected; ?>><?php echo $option; ?></option>
+                  <?php
+                }
+                ?>
+              </select>
+            </fieldset>
+            <?php
           }
           ?>
           <input type="submit" class="search-submit" value="<?php echo $settings[ 'button_text' ]; ?>">

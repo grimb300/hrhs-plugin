@@ -110,6 +110,15 @@ class HRHS_Simple_Search {
     // hrhs_debug( 'Filtered search fields:' );
     // hrhs_debug( $search_fields );
 
+    // Get the number of results to return. Default is 'all' (-1)
+    $num_results = empty( $params[ 'num_results'] ) ? -1 : intval( $params[ 'num_results' ] );
+    hrhs_debug( sprintf( 'get_search_results: Was sent num_results: %s, this was interpreted as: %s', $params[ 'num_results' ], $num_results ) );
+    if ( 0 === $num_results ) {
+      // Catch the case where a non-integer is passed (intval returns 0)
+      // NOTE: This also catches the 'all' case, which is expected
+      $num_results = -1;
+    }
+
     // Done getting the params
     //////////////////////////
 
@@ -125,7 +134,7 @@ class HRHS_Simple_Search {
       );
     }
     $get_posts_query = array(
-      'numberposts' => -1, // Return all matches
+      'posts_per_page' => $num_results,
       'fields' => 'ids',   // Return an array of post IDs
       'post_type' => $this->haystack_def[ 'slug' ], // Search only the current haystack's post type
       'post_status' => 'publish', // Return only published posts

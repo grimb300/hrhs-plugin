@@ -95,19 +95,31 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       $selected_fields = empty( $_GET[ 'search_fields' ] ) ? array() : $_GET[ 'search_fields' ];
       // hrhs_debug( 'SearchResultsWidget: Selected fields' );
       // hrhs_debug( $selected_fields );
+
+      // Get the number of results per page (if present)
+      // FIXME: Hard coded default needs to come from a centralized location
+      $num_results = empty( $_GET[ 'num_results' ] ) ? '50' : $_GET[ 'num_results' ];
+
+      // Get the search results to be displayed
+      // FIXME: This will need some major work when merged back into main
       $search_results = $search_obj->get_search_results(
         array(
           'needle' => $needle,
           'fields' => $selected_fields,
+          'num_results' => $num_results,
         )
       );
-      $num_results = count( $search_results );
+
+      // Get the total number of results (not just the ones being displayed)
+      // FIXME: Needs a new function in HRHS_Simple_Search
+      $total_results = count( $search_results );
+
       ?>
       <div class="hrhs_search_results_wrap">
-        <h4>Your search for "<?php echo $needle; ?>" generated <?php echo $num_results; ?> results</h4>
+        <h4>Your search for "<?php echo $needle; ?>" generated <?php echo $total_results; ?> results</h4>
         <?php
         // If any results were returned, display them here
-        if ( $num_results > 0 ) {
+        if ( $total_results > 0 ) {
           $display_fields = $search_obj->get_display_fields();
           if ( ! empty( $display_fields ) ) {
             ?>
