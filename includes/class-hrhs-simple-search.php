@@ -119,6 +119,9 @@ class HRHS_Simple_Search {
       $num_results = -1;
     }
 
+    // Get the page number that should be retrieved
+    $page_num = empty( $params[ 'page_num' ] ) ? 1 : $params[ 'page_num' ];
+
     // Done getting the params
     //////////////////////////
 
@@ -135,6 +138,7 @@ class HRHS_Simple_Search {
     }
     $get_posts_query = array(
       'posts_per_page' => $num_results,
+      'paged' => $page_num,
       'fields' => 'ids',   // Return an array of post IDs
       'post_type' => $this->haystack_def[ 'slug' ], // Search only the current haystack's post type
       'post_status' => 'publish', // Return only published posts

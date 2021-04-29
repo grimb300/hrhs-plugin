@@ -68,6 +68,16 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     // $this->end_controls_section();
   }
 
+  private function gen_pagination_url( $params = array() ) {
+    // Get the passed query vars (if present)
+    $query_vars = empty( $params[ 'query_vars' ] ) ? array() : $params[ 'query_vars' ];
+    // Add the pagination query var
+    if ( ! empty( $params[ 'page' ] ) ) {
+      $query_vars[ 'paged' ] = $params[ 'page' ];
+    }
+    return get_page_link() . '?' . http_build_query( $query_vars );
+  }
+
   // Render the widget output on the frontend
   // Written in PHP and used to generate the final HTML
   // NOTE: This is displayed on the frontend and the editor when not editing the content
@@ -100,6 +110,9 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       // FIXME: Hard coded default needs to come from a centralized location
       $num_results = empty( $_GET[ 'num_results' ] ) ? '50' : $_GET[ 'num_results' ];
 
+      // Get the page number to display
+      $page_num = empty( $_GET[ 'paged' ] ) ? 1 : $_GET[ 'paged' ];
+
       // Get the search results to be displayed
       // FIXME: This will need some major work when merged back into main
       $search_results = $search_obj->get_search_results(
@@ -107,6 +120,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
           'needle' => $needle,
           'fields' => $selected_fields,
           'num_results' => $num_results,
+          'page_num' => $page_num,
         )
       );
 
@@ -119,6 +133,45 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       <div class="hrhs_search_results_wrap">
         <h4>Your search for "<?php echo $needle; ?>" generated <?php echo $total_results; ?> results</h4>
         <?php
+        hrhs_debug( 'Current page url: ' . get_page_link() );
+        // If there are more results than will be displayed, display the pagination links
+        if ( ( 'all' !== $num_results ) && ( $total_results > $num_results ) ) {
+          // Generate the base URL for the pagination links
+          $query_vars = array();
+          if ( ! empty( $_GET[ 'search_type' ] ) ) {
+            $query_vars[ 'search_type' ] = $_GET[ 'search_type' ];
+          }
+          if ( ! empty( $_GET[ 'search' ] ) ) {
+            $query_vars[ 'search' ] = $_GET[ 'search' ];
+          }
+          if ( ! empty( $_GET[ 'search_fields' ] ) ) {
+            $query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ];
+          }
+          if ( ! empty( $_GET[ 'num_results' ] ) ) {
+            $query_vars[ 'num_results' ] = $_GET[ 'num_results' ];
+          }
+          // $query_vars[ 'paged' ] = 0;
+          $pagination_url = sprintf( '%s?%s', get_page_link(), implode( '&', $query_vars ) );
+          ?>
+          <div class="pagination">
+            <strong>Go to page: </strong>
+            <span class="first-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => 1, 'query_vars' => $query_vars ) ); ?>">&laquo;</a></span>
+            <span class="prev-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $page_num - 1, 'query_vars' => $query_vars ) ); ?>">&lsaquo;</a></span>
+            <?php
+            // Calculate the total number of pages
+            $total_pages = ceil( $total_results / $num_results );
+            for ( $page = 1; $page <= $total_pages; $page++ ) {
+              ?>
+              <span class="direct-page page-num-<?php echo $page; ?>"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $page, 'query_vars' => $query_vars ) ); ?>"><?php echo $page; ?></a></span>
+              <?php
+            }
+            ?>
+            <span class="next-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $page_num + 1, 'query_vars' => $query_vars ) ); ?>">&rsaquo;</a></span>
+            <span class="last-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $total_pages, 'query_vars' => $query_vars ) ); ?>">&raquo;</a></span>
+          </div>
+          <?php
+        }
+
         // If any results were returned, display them here
         if ( $total_results > 0 ) {
           $display_fields = $search_obj->get_display_fields();
