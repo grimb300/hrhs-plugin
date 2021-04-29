@@ -112,7 +112,7 @@ class HRHS_Simple_Search {
 
     // Get the number of results to return. Default is 'all' (-1)
     $num_results = empty( $params[ 'num_results'] ) ? -1 : intval( $params[ 'num_results' ] );
-    hrhs_debug( sprintf( 'get_search_results: Was sent num_results: %s, this was interpreted as: %s', $params[ 'num_results' ], $num_results ) );
+    // hrhs_debug( sprintf( 'get_search_results: Was sent num_results: %s, this was interpreted as: %s', $params[ 'num_results' ], $num_results ) );
     if ( 0 === $num_results ) {
       // Catch the case where a non-integer is passed (intval returns 0)
       // NOTE: This also catches the 'all' case, which is expected
@@ -141,11 +141,19 @@ class HRHS_Simple_Search {
       'meta_query' => $meta_query,
     );
 
+    // NOTE: Have to put a backslash in front of WP_Query to find it in the global namespace
+    $my_query = new \WP_Query( $get_posts_query );
+    // hrhs_debug( sprintf( 'WP_Query returned %d posts', $my_query->post_count ) );
+    // hrhs_debug( sprintf( 'WP_Query there are a total of %d posts', $my_query->found_posts ) );
+    // hrhs_debug( 'WP_Query returning posts' );
+    // hrhs_debug( $my_query->posts );
+
     // hrhs_debug( 'Query:' );
     // hrhs_debug( $get_posts_query );
 
     // Return the search results
-    return get_posts( $get_posts_query );
+    // return get_posts( $get_posts_query );
+    return $my_query->posts;
   }
 
   /* ******************
