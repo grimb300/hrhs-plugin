@@ -68,13 +68,47 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     // $this->end_controls_section();
   }
 
-  private function gen_pagination_url( $params = array() ) {
-    // Get the passed query vars (if present)
-    $query_vars = empty( $params[ 'query_vars' ] ) ? array() : $params[ 'query_vars' ];
-    // Add the pagination query var
-    if ( ! empty( $params[ 'page' ] ) ) {
-      $query_vars[ 'paged' ] = $params[ 'page' ];
-    }
+  private function gen_pagination_links( $params = array() ) {
+    // Get the current page number out of the params
+    $current_page = empty( $params[ 'current_page' ] ) ? 1 : $params[ 'current_page' ];
+
+    // Get the last page number out of the params
+    $last_page = empty( $params[ 'last_page' ] ) ? 1 : $params[ 'last_page' ];
+
+    // Get the query_vars out of the params
+    $query_vars = empty( $param[ 'query_vars' ] ) ? array() : $params[ 'query_vars' ];
+
+    // Echo the links
+    ?>
+    <div class="pagination">
+      <strong>Go to page: </strong>
+      <?php
+      // Generate the first page and previous page links only if the current page isn't page 1
+      if ( 1 !== $current_page ) {
+        $query_vars[ 'paged' ] = 1;
+        ?>
+        <span class="first-page"><a href="<?php echo $this->gen_pagination_url( $query_vars ); ?>">&laquo;</a></span>
+        <?php
+        $query_vars[ 'paged' ] = $current_page - 1;
+        ?>
+        <span class="prev-page"><a href="<?php echo $this->gen_pagination_url( $query_vars ); ?>">&lsaquo;</a></span>
+        <?php
+      }
+      // Generate the direct page links
+      // FIXME: Pick up where I left off here
+      for ( $page = 1; $page <= $total_pages; $page++ ) {
+        ?>
+        <span class="direct-page page-num-<?php echo $page; ?>"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $page, 'query_vars' => $query_vars ) ); ?>"><?php echo $page; ?></a></span>
+        <?php
+      }
+      ?>
+      <span class="next-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $page_num + 1, 'query_vars' => $query_vars ) ); ?>">&rsaquo;</a></span>
+      <span class="last-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $total_pages, 'query_vars' => $query_vars ) ); ?>">&raquo;</a></span>
+    </div>
+    <?php
+  }
+
+  private function gen_pagination_url( $query_vars = array() ) {
     return get_page_link() . '?' . http_build_query( $query_vars );
   }
 
@@ -133,47 +167,28 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       <div class="hrhs_search_results_wrap">
         <h4>Your search for "<?php echo $needle; ?>" generated <?php echo $total_results; ?> results</h4>
         <?php
-        hrhs_debug( 'Current page url: ' . get_page_link() );
         // If there are more results than will be displayed, display the pagination links
         if ( ( 'all' !== $num_results ) && ( $total_results > $num_results ) ) {
-          // Generate the base URL for the pagination links
-          $query_vars = array();
-          if ( ! empty( $_GET[ 'search_type' ] ) ) {
-            $query_vars[ 'search_type' ] = $_GET[ 'search_type' ];
-          }
-          if ( ! empty( $_GET[ 'search' ] ) ) {
-            $query_vars[ 'search' ] = $_GET[ 'search' ];
-          }
-          if ( ! empty( $_GET[ 'search_fields' ] ) ) {
-            $query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ];
-          }
-          if ( ! empty( $_GET[ 'num_results' ] ) ) {
-            $query_vars[ 'num_results' ] = $_GET[ 'num_results' ];
-          }
-          // $query_vars[ 'paged' ] = 0;
-          $pagination_url = sprintf( '%s?%s', get_page_link(), implode( '&', $query_vars ) );
-          ?>
-          <div class="pagination">
-            <strong>Go to page: </strong>
-            <span class="first-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => 1, 'query_vars' => $query_vars ) ); ?>">&laquo;</a></span>
-            <span class="prev-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $page_num - 1, 'query_vars' => $query_vars ) ); ?>">&lsaquo;</a></span>
-            <?php
-            // Calculate the total number of pages
-            $total_pages = ceil( $total_results / $num_results );
-            for ( $page = 1; $page <= $total_pages; $page++ ) {
-              ?>
-              <span class="direct-page page-num-<?php echo $page; ?>"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $page, 'query_vars' => $query_vars ) ); ?>"><?php echo $page; ?></a></span>
-              <?php
-            }
-            ?>
-            <span class="next-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $page_num + 1, 'query_vars' => $query_vars ) ); ?>">&rsaquo;</a></span>
-            <span class="last-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $total_pages, 'query_vars' => $query_vars ) ); ?>">&raquo;</a></span>
-          </div>
-          <?php
+          $this->gen_pagination_links();
         }
 
         // If any results were returned, display them here
         if ( $total_results > 0 ) {
+          // Get the interesting query vars from the current page
+          $pagination_query_vars = array();
+          if ( ! empty( $_GET[ 'search_type' ] ) )   { $pagination_query_vars[ 'search_type' ] = $_GET[ 'search_type' ]; }
+          if ( ! empty( $_GET[ 'search' ] ) )        { $pagination_query_vars[ 'search' ] = $_GET[ 'search' ]; }
+          if ( ! empty( $_GET[ 'search_fields' ] ) ) { $pagination_query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ]; }
+          if ( ! empty( $_GET[ 'num_results' ] ) )   { $pagination_query_vars[ 'num_results' ] = $_GET[ 'num_results' ]; }
+          // Display the pagination links
+          $this->gen_pagination_links(
+            array( 
+              'current_page' => $page_num,
+              'last_page' => ceil( $total_results / $num_results ),
+              'query_vars' => $pagination_query_vars
+            )
+          );
+          // Display the table
           $display_fields = $search_obj->get_display_fields();
           if ( ! empty( $display_fields ) ) {
             ?>
