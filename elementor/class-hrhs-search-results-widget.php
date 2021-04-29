@@ -112,7 +112,8 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
 
       // Get the total number of results (not just the ones being displayed)
       // FIXME: Needs a new function in HRHS_Simple_Search
-      $total_results = count( $search_results );
+      // $total_results = count( $search_results );
+      $total_results = $search_results[ 'found_results' ];
 
       ?>
       <div class="hrhs_search_results_wrap">
@@ -130,7 +131,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
                     <th scope="col"><?php echo $field[ 'label' ]; ?></th>
                   <?php } ?>
                 </tr>
-                <?php foreach ( $search_results as $post_id ) { ?>
+                <?php foreach ( $search_results[ 'results' ] as $post_id ) { ?>
                   <tr>
                     <?php
                     $result_meta_data = get_post_meta( $post_id );

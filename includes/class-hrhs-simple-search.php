@@ -153,7 +153,19 @@ class HRHS_Simple_Search {
 
     // Return the search results
     // return get_posts( $get_posts_query );
-    return $my_query->posts;
+
+    // FIXME: When merging back into main...
+    //        MySQL has a function FOUND_ROWS() which will return
+    //        the total number of rows found during the last query
+    //        Therefore it should look something like:
+    //        SELECT * FROM <custom_table>
+    //          WHERE <filters>
+    //          LIMIT <num_per_page>; <== returns the paged results
+    //        SELECT FOUND_ROWS();    <== returns the total number of found rows
+    return array(
+      'results' => $my_query->posts,
+      'found_results' => $my_query->found_posts
+    );
   }
 
   /* ******************
