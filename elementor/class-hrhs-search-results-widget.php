@@ -70,40 +70,97 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
 
   private function gen_pagination_links( $params = array() ) {
     // Get the current page number out of the params
-    $current_page = empty( $params[ 'current_page' ] ) ? 1 : $params[ 'current_page' ];
+    $current_page = empty( $params[ 'current_page' ] ) ? 1 : intval( $params[ 'current_page' ] );
 
     // Get the last page number out of the params
-    $last_page = empty( $params[ 'last_page' ] ) ? 1 : $params[ 'last_page' ];
+    $last_page = empty( $params[ 'last_page' ] ) ? 1 : intval( $params[ 'last_page' ] );
+    // If the last page is page 1, return, there's nothing to display
+    if ( 1 === $last_page ) {
+      return;
+    }
 
     // Get the query_vars out of the params
-    $query_vars = empty( $param[ 'query_vars' ] ) ? array() : $params[ 'query_vars' ];
+    $query_vars = empty( $params[ 'query_vars' ] ) ? array() : $params[ 'query_vars' ];
+    hrhs_debug( 'gen_pagination_links: query_vars' );
+    hrhs_debug( $query_vars );
 
     // Echo the links
+    // TODO: Been going back and forth in my head as to what is the best way to display the links.
+    //       Option 1: Use a format similar to the admin list page
+    //                 << < 3 4 5 6 7 > >>
+    //                  | |     |     | |
+    //                  | |     |     | +-> Last Page
+    //                  | |     |     +---> Next Page
+    //                  | |     +---------> Direct Pages (shifts based on current page)
+    //                  | +---------------> Previous Page
+    //                  +-----------------> First Page
+    //       Option 2: Show the first and last page with a shifting series around the current page
+    //                 1 ... 3 4 5 6 7 ... 10
+    //                 |         |         |
+    //                 |         |         +-> Last Page
+    //                 |         +-----------> Direct Pages (shifts based on current page)
+    //                 +---------------------> First Page
+    //       For now, going with option 2 since it displays more info by default, commenting out option 1
     ?>
     <div class="pagination">
       <strong>Go to page: </strong>
       <?php
-      // Generate the first page and previous page links only if the current page isn't page 1
-      if ( 1 !== $current_page ) {
-        $query_vars[ 'paged' ] = 1;
-        ?>
-        <span class="first-page"><a href="<?php echo $this->gen_pagination_url( $query_vars ); ?>">&laquo;</a></span>
-        <?php
-        $query_vars[ 'paged' ] = $current_page - 1;
-        ?>
-        <span class="prev-page"><a href="<?php echo $this->gen_pagination_url( $query_vars ); ?>">&lsaquo;</a></span>
-        <?php
+      // Option 1 (commented out)
+      // The rendered html would look something like:
+      //   <span class="first-page"><a href="">&laquo;</a></span>
+      //   <span class="prev-page"><a href="">&lsaquo;</a></span>
+      //   <span class="direct-page page-num-3"><a href="">3</a></span>
+      //   <span class="direct-page page-num-4"><a href="">4</a></span>
+      //   <span class="direct-page page-num-5 current"><strong>5</strong></span>
+      //   <span class="direct-page page-num-6"><a href="">6</a></span>
+      //   <span class="direct-page page-num-7"><a href="">7</a></span>
+      //   <span class="next-page"><a href="">&rsaquo;</a></span>
+      //   <span class="last-page"><a href="">&raquo;</a></span>
+
+      // Option 2
+      // Create an array of pages to render links for
+      $pages_to_render = array();
+      if ( $last_page <= 5 ) {
+        // Doesn't make sense to skip page number, render them all
+        $pages_to_render = range( 1, $last_page );
+      } elseif ( $current_page <= 3 ) {
+        // The current page is within 2 steps of the first page
+        // NOTE: I'm using page number -1 to represent the ellipsis (.../&hellip;)
+        $pages_to_render = array_merge( range( 1, $current_page + 2 ), array( -1, $last_page ) );
+      } elseif ( $current_page >= $last_page - 2 ) {
+        // The current page is within 2 steps of the last page
+        // NOTE: I'm using page number -1 to represent the ellipsis (.../&hellip;)
+        $pages_to_render = array_merge( array( 1, -1 ), range( $current_page - 2, $last_page ) );
+      } else {
+        // The current page is somewhere in the middle
+        // NOTE: I'm using page number -1 to represent the ellipsis (.../&hellip;)
+        $pages_to_render = array_merge( array( 1, -1 ), range( $current_page - 2, $current_page + 2 ), array( -1, $last_page ) );
       }
-      // Generate the direct page links
-      // FIXME: Pick up where I left off here
-      for ( $page = 1; $page <= $total_pages; $page++ ) {
-        ?>
-        <span class="direct-page page-num-<?php echo $page; ?>"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $page, 'query_vars' => $query_vars ) ); ?>"><?php echo $page; ?></a></span>
-        <?php
+
+      // Now iterate across the links to render
+      foreach ( $pages_to_render as $page ) {
+        // Add this page to the query vars
+        $query_vars[ 'paged' ] = $page;
+
+        // Render the appropriate span
+        if ( -1 === $page ) {
+          // If the page number is -1 render an ellipsis
+          ?>
+          <span class="dot-dot-dot">&hellip;</span>
+          <?php
+        } elseif ( $current_page === $page ) {
+          // If this is the current page, no link and make it bold
+          ?>
+          <span class="direct-page page-num-<?php echo $page; ?> current"><strong><?php echo $page; ?></strong></span>
+          <?php
+        } else {
+          // Render the link
+          ?>
+          <span class="direct-page page-num-<?php echo $page; ?>"><a href="<?php echo $this->gen_pagination_url( $query_vars ); ?>"><?php echo $page; ?></a></span>
+          <?php
+        }
       }
-      ?>
-      <span class="next-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $page_num + 1, 'query_vars' => $query_vars ) ); ?>">&rsaquo;</a></span>
-      <span class="last-page"><a href="<?php echo $this->gen_pagination_url( array( 'page' => $total_pages, 'query_vars' => $query_vars ) ); ?>">&raquo;</a></span>
+    ?>
     </div>
     <?php
   }
@@ -167,11 +224,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       <div class="hrhs_search_results_wrap">
         <h4>Your search for "<?php echo $needle; ?>" generated <?php echo $total_results; ?> results</h4>
         <?php
-        // If there are more results than will be displayed, display the pagination links
-        if ( ( 'all' !== $num_results ) && ( $total_results > $num_results ) ) {
-          $this->gen_pagination_links();
-        }
-
         // If any results were returned, display them here
         if ( $total_results > 0 ) {
           // Get the interesting query vars from the current page
@@ -180,6 +232,8 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
           if ( ! empty( $_GET[ 'search' ] ) )        { $pagination_query_vars[ 'search' ] = $_GET[ 'search' ]; }
           if ( ! empty( $_GET[ 'search_fields' ] ) ) { $pagination_query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ]; }
           if ( ! empty( $_GET[ 'num_results' ] ) )   { $pagination_query_vars[ 'num_results' ] = $_GET[ 'num_results' ]; }
+          // hrhs_debug( 'pagination_query_vars' );
+          // hrhs_debug( $pagination_query_vars );
           // Display the pagination links
           $this->gen_pagination_links(
             array( 
@@ -220,6 +274,14 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
             </table>
             <?php
           }
+          // Display the pagination links, again
+          $this->gen_pagination_links(
+            array( 
+              'current_page' => $page_num,
+              'last_page' => ceil( $total_results / $num_results ),
+              'query_vars' => $pagination_query_vars
+            )
+          );
         }
         ?>
       </div>
