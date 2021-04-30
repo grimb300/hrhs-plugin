@@ -140,7 +140,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       // Now iterate across the links to render
       foreach ( $pages_to_render as $page ) {
         // Add this page to the query vars
-        $query_vars[ 'paged' ] = $page;
+        $query_vars[ 'results_page' ] = $page;
 
         // Render the appropriate span
         if ( -1 === $page ) {
@@ -202,7 +202,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       $num_results = empty( $_GET[ 'num_results' ] ) ? '50' : $_GET[ 'num_results' ];
 
       // Get the page number to display
-      $page_num = empty( $_GET[ 'paged' ] ) ? 1 : $_GET[ 'paged' ];
+      $page_num = empty( $_GET[ 'results_page' ] ) ? 1 : $_GET[ 'results_page' ];
 
       // Get the search results to be displayed
       // FIXME: This will need some major work when merged back into main
