@@ -2,30 +2,23 @@
  * Member login styles 
  * *******************/
 
-/* #hrhs_search_wrap {
+#hrhs_member_login_form .login-username {
+  display: none;
+}
+
+/* ******************
+ * Search form styles
+ * ******************/
+
+/* .hrhs-form-layout-wrap {
   display: flex;
-  flex-wrap: nowrap;
 } */
 
-/* #hrhs_search_form_wrap {
-  flex-basis: auto;
-  flex-grow: 1;
-} */
-
-/* #hrhs_search_widget_wrap {
-  flex-basis: 20ch;
-  flex-grow: 0;
-} */
-
-/* #hrhs_member_login_info {
+/* .hrhs-input-wrap {
   display: flex;
   flex-direction: column;
 } */
 
-/* #hrhs_member_login_form {
+.hrhs-option-wrap {
   display: flex;
-} */
-
-#hrhs_member_login_form .login-username {
-  display: none;
 }
