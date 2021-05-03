@@ -122,20 +122,46 @@ class HRHS_Simple_Search {
     // Get the page number that should be retrieved
     $page_num = empty( $params[ 'page_num' ] ) ? 1 : $params[ 'page_num' ];
 
+    // Get the desired sort order
+    $sort_order = empty( $params[ 'sort' ] ) ? array() : $params[ 'sort' ];
+    hrhs_debug( 'Sort order is:' );
+    hrhs_debug( $sort_order );
+
     // Done getting the params
     //////////////////////////
 
-    // Build a query for this haystack
+    // Create a meta query for the necessary fields
     $meta_query = array(
-      'relation' => 'OR', // Needle must match at least one field
+      'relation' => 'AND', // Needle must match at least one field
     );
     foreach( $search_fields as $field ) {
-      $meta_query[ $field[ 'slug' ] . '_clause' ] = array(
+      $search_clause = $field[ 'slug' ] . '_clause';
+      $meta_query[ $search_clause ] = array(
         'key' => $field[ 'slug' ],
         'value' => $needle,   // NOTE: Using LIKE will automagically add
         'compare' => 'LIKE',  //       SQL wildcards (%) around the value
       );
     }
+    // Add sort ordering
+    $orderby = array();
+    foreach( $sort_order as $field ) {
+      hrhs_debug( 'Sorting field ' . $field );
+      // If there isn't already a search clause for this field create a simple exists clause
+      // FIXME: This seems dangerous. It won't display records where the meta value doesn't exist.
+      //        Not sure if it's possible to guarantee add records have all meta values right now.
+      $sort_clause = $field . '_clause';
+      if ( ! array_key_exists( $sort_clause, $meta_query ) ) {
+        $meta_query[ $sort_clause ] = array(
+          'key' => $field,
+          'compare' => 'EXISTS',
+        );
+      }
+      $orderby[ $sort_clause ] = 'ASC';
+    }
+    hrhs_debug( 'Meta query and orderby:' );
+    hrhs_debug( $meta_query );
+    hrhs_debug( $orderby );
+    // Build the query for this haystack
     $get_posts_query = array(
       'posts_per_page' => $num_results,
       'paged' => $page_num,
@@ -143,6 +169,7 @@ class HRHS_Simple_Search {
       'post_type' => $this->haystack_def[ 'slug' ], // Search only the current haystack's post type
       'post_status' => 'publish', // Return only published posts
       'meta_query' => $meta_query,
+      'orderby' => $orderby,
     );
 
     // NOTE: Have to put a backslash in front of WP_Query to find it in the global namespace

@@ -81,8 +81,8 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
 
     // Get the query_vars out of the params
     $query_vars = empty( $params[ 'query_vars' ] ) ? array() : $params[ 'query_vars' ];
-    hrhs_debug( 'gen_pagination_links: query_vars' );
-    hrhs_debug( $query_vars );
+    // hrhs_debug( 'gen_pagination_links: query_vars' );
+    // hrhs_debug( $query_vars );
 
     // Echo the links
     // TODO: Been going back and forth in my head as to what is the best way to display the links.
@@ -204,6 +204,17 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       // Get the page number to display
       $page_num = empty( $_GET[ 'results_page' ] ) ? 1 : $_GET[ 'results_page' ];
 
+      // Get the default sort order
+      $sortable_fields = $search_obj->get_default_sort();
+      hrhs_debug( 'Default search order:' );
+      hrhs_debug( $sortable_fields );
+
+      // Sort on the request query field, if present. Otherwise, use default sort order.
+      $sort_order =
+        empty( $_GET[ 'sort_field' ] )
+        ? array_map( function ( $field ) { return $field[ 'slug' ]; }, $sortable_fields )
+        : array( $_GET[ 'sort_field' ] );
+
       // Get the search results to be displayed
       // FIXME: This will need some major work when merged back into main
       $search_results = $search_obj->get_search_results(
@@ -212,6 +223,8 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
           'fields' => $selected_fields,
           'num_results' => $num_results,
           'page_num' => $page_num,
+          'sort' => $sort_order,
+          // 'sort' => $sortable_fields,
         )
       );
 
@@ -226,22 +239,28 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
         <?php
         // If any results were returned, display them here
         if ( $total_results > 0 ) {
-          // Get the interesting query vars from the current page
-          $pagination_query_vars = array();
-          if ( ! empty( $_GET[ 'search_type' ] ) )   { $pagination_query_vars[ 'search_type' ] = $_GET[ 'search_type' ]; }
-          if ( ! empty( $_GET[ 'search' ] ) )        { $pagination_query_vars[ 'search' ] = $_GET[ 'search' ]; }
-          if ( ! empty( $_GET[ 'search_fields' ] ) ) { $pagination_query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ]; }
-          if ( ! empty( $_GET[ 'num_results' ] ) )   { $pagination_query_vars[ 'num_results' ] = $_GET[ 'num_results' ]; }
-          // hrhs_debug( 'pagination_query_vars' );
-          // hrhs_debug( $pagination_query_vars );
-          // Display the pagination links
-          $this->gen_pagination_links(
-            array( 
-              'current_page' => $page_num,
-              'last_page' => ceil( $total_results / $num_results ),
-              'query_vars' => $pagination_query_vars
-            )
-          );
+          // Display the pagination controls only if:
+          //    1. The number of results per page is not 'all'
+          //    2. There is more than 1 page of results
+          $display_pagination = 'all' !== $num_results && $total_results <= intval( $num_results );
+          if ( $display_pagination ) {
+            // Get the interesting query vars from the current page
+            $pagination_query_vars = array();
+            if ( ! empty( $_GET[ 'search_type' ] ) )   { $pagination_query_vars[ 'search_type' ] = $_GET[ 'search_type' ]; }
+            if ( ! empty( $_GET[ 'search' ] ) )        { $pagination_query_vars[ 'search' ] = $_GET[ 'search' ]; }
+            if ( ! empty( $_GET[ 'search_fields' ] ) ) { $pagination_query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ]; }
+            if ( ! empty( $_GET[ 'num_results' ] ) )   { $pagination_query_vars[ 'num_results' ] = $_GET[ 'num_results' ]; }
+            // hrhs_debug( 'pagination_query_vars' );
+            // hrhs_debug( $pagination_query_vars );
+            // Display the pagination links
+            $this->gen_pagination_links(
+              array( 
+                'current_page' => $page_num,
+                'last_page' => ceil( $total_results / intval( $num_results ) ),
+                'query_vars' => $pagination_query_vars
+              )
+            );
+          }
           // Display the table
           $display_fields = $search_obj->get_display_fields();
           if ( ! empty( $display_fields ) ) {
@@ -274,14 +293,16 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
             </table>
             <?php
           }
-          // Display the pagination links, again
-          $this->gen_pagination_links(
-            array( 
-              'current_page' => $page_num,
-              'last_page' => ceil( $total_results / $num_results ),
-              'query_vars' => $pagination_query_vars
-            )
-          );
+          // Display the pagination links, again, if necessary
+          if ( $display_pagination ) {
+            $this->gen_pagination_links(
+              array( 
+                'current_page' => $page_num,
+                'last_page' => ceil( $total_results / intval( $num_results ) ),
+                'query_vars' => $pagination_query_vars
+              )
+            );
+          }
         }
         ?>
       </div>
