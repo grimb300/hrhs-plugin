@@ -152,6 +152,24 @@ class HRHS_Simple_Search {
       'orderby' => $orderby,
     );
 
+    /* ************************************************************************************************
+     * Quick MySQL code break
+     * After playing around in phpMyAdmin, I came up with this direct MySQL query which does what I want
+     * This will be useful when merging back into the main branch and working with custom tables
+     * ************************************************************************************************/
+
+    // $sql = "SELECT post.ID AS ID, sur.meta_value AS Surname, given.meta_value AS GivenName FROM `wp_posts` AS post
+    // LEFT JOIN `wp_postmeta` AS given ON post.ID = given.post_id
+    // LEFT JOIN `wp_postmeta` AS sur ON post.ID = sur.post_id
+    // WHERE post.post_type = 'name_entry'
+    // AND given.meta_key = 'givenname'
+    // AND sur.meta_key = 'surname'
+    // AND (given.meta_value LIKE '%a%' AND sur.meta_value LIKE '%a%') ORDER BY sur.meta_value ASC, given.meta_value ASC;";
+
+    /* ************************************************************************************************
+     * END MySQL code break
+     * ************************************************************************************************/
+
     // NOTE: Have to put a backslash in front of WP_Query to find it in the global namespace
     $my_query = new \WP_Query( $get_posts_query );
 
