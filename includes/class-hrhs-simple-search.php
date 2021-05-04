@@ -24,8 +24,6 @@ class HRHS_Simple_Search {
 
   public function __construct( $params = array() ) {
 
-    // hrhs_debug( 'Inside HRHS_Simple_Search::__construct()' );
-
     $this->needle = empty( $params[ 'needle' ] ) ? null : $params[ 'needle' ];
     
     if ( ! empty( $params[ 'haystack' ] ) ) {
@@ -58,8 +56,6 @@ class HRHS_Simple_Search {
         return ! empty( $field[ 'default_sort' ] ) && is_int( $field[ 'default_sort' ] );
       }
     );
-    // hrhs_debug( 'default_sort after filter' );
-    // hrhs_debug( $default_sort );
     // NOTE: usort sorts in place
     usort(
       $default_sort,
@@ -72,14 +68,11 @@ class HRHS_Simple_Search {
         return $a_sort < $b_sort ? -1 : 1;
       }
     );
-    // hrhs_debug( 'default_sort after usort' );
-    // hrhs_debug( $default_sort );
     $this->default_sort = $default_sort;
 
   }
 
   public function get_search_results( $params = array() ) {
-    // hrhs_debug( sprintf( 'Inside display_search_results( %s )', var_export( $params, true ) ) );
     // If params is empty or none of the fields are searchable, return an empty array
     if ( empty( $params ) || empty( $this->searchable_fields ) ) {
       return array();
@@ -95,8 +88,6 @@ class HRHS_Simple_Search {
     // Get the fields
     // Default is $this->default_search, but can be changed by $params[ 'fields' ]
     $params_fields = empty( $params[ 'fields' ] ) ? array() : $params[ 'fields' ];
-    // hrhs_debug( 'params_fields:' );
-    // hrhs_debug( $params_fields );
     $filtered_fields = array_filter(
       $this->searchable_fields,
         // function... use... pulls $params_fields into the filter function scope
@@ -105,14 +96,9 @@ class HRHS_Simple_Search {
       }
     );
     $search_fields = empty( $filtered_fields ) ? $this->default_search : $filtered_fields;
-    // hrhs_debug( 'All searchable fields:' );
-    // hrhs_debug( $this->searchable_fields );
-    // hrhs_debug( 'Filtered search fields:' );
-    // hrhs_debug( $search_fields );
 
     // Get the number of results to return. Default is 'all' (-1)
     $num_results = empty( $params[ 'num_results'] ) ? -1 : intval( $params[ 'num_results' ] );
-    // hrhs_debug( sprintf( 'get_search_results: Was sent num_results: %s, this was interpreted as: %s', $params[ 'num_results' ], $num_results ) );
     if ( 0 === $num_results ) {
       // Catch the case where a non-integer is passed (intval returns 0)
       // NOTE: This also catches the 'all' case, which is expected
@@ -124,8 +110,6 @@ class HRHS_Simple_Search {
 
     // Get the desired sort order
     $sort_order = empty( $params[ 'sort' ] ) ? array() : $params[ 'sort' ];
-    // hrhs_debug( 'Sort order is:' );
-    // hrhs_debug( $sort_order );
 
     // Done getting the params
     //////////////////////////
@@ -145,7 +129,6 @@ class HRHS_Simple_Search {
     // Add sort ordering
     $orderby = array();
     foreach( $sort_order as $field ) {
-      // hrhs_debug( 'Sorting field ' . $field );
       // If there isn't already a search clause for this field create a simple exists clause
       // FIXME: This seems dangerous. It won't display records where the meta value doesn't exist.
       //        Not sure if it's possible to guarantee add records have all meta values right now.
@@ -156,12 +139,8 @@ class HRHS_Simple_Search {
           'compare' => 'EXISTS',
         );
       }
-      // $orderby[ $sort_clause ] = 'ASC';
       $orderby[ $sort_clause ] = strtoupper( $field[ 'dir' ] );
     }
-    // hrhs_debug( 'Meta query and orderby:' );
-    // hrhs_debug( $meta_query );
-    // hrhs_debug( $orderby );
     // Build the query for this haystack
     $get_posts_query = array(
       'posts_per_page' => $num_results,
@@ -175,17 +154,8 @@ class HRHS_Simple_Search {
 
     // NOTE: Have to put a backslash in front of WP_Query to find it in the global namespace
     $my_query = new \WP_Query( $get_posts_query );
-    // hrhs_debug( sprintf( 'WP_Query returned %d posts', $my_query->post_count ) );
-    // hrhs_debug( sprintf( 'WP_Query there are a total of %d posts', $my_query->found_posts ) );
-    // hrhs_debug( 'WP_Query returning posts' );
-    // hrhs_debug( $my_query->posts );
-
-    // hrhs_debug( 'Query:' );
-    // hrhs_debug( $get_posts_query );
 
     // Return the search results
-    // return get_posts( $get_posts_query );
-
     // FIXME: When merging back into main...
     //        MySQL has a function FOUND_ROWS() which will return
     //        the total number of rows found during the last query
@@ -203,18 +173,6 @@ class HRHS_Simple_Search {
   /* ******************
    * Accessor functions
    * ******************/
-
-  // Get the search post types/fields
-  // TODO: Commenting out until I find a use for it
-  // public function get_search_types_fields() {
-  //   return $this->search_types_fields;
-  // }
-
-  // Check if this is the current search page
-  // By default, all HRHS_Search pages use the same template and same filters, check against the slug of the current page
-  // private function is_current_search_page() {
-  //   return boolval( get_query_var( $this->slug, false ) );
-  // }
 
   // Get all searchable fields (regardless of user status)
   public function get_all_search_fields() {

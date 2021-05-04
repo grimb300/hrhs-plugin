@@ -54,13 +54,11 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
   // Register the widget controls
   // Adds different input fields to allow the user to change and customize the widget settings
   protected function _register_controls() {
-    // hrhs_debug( 'Inside HRHS_Search_Form_Widget::_register_controls()');
 
     // Get the various CPTs that could be searched out of options
     require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-options.php';
     $options_obj = new HRHS_Options();
     $my_options = $options_obj->get();
-    // hrhs_debug( $my_options );
 
     // Build the search_type select array
     $search_types_select = array_map( 
@@ -172,8 +170,6 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
       $search_obj->get_default_search()
     );
     if ( ! empty ( $_GET[ 'search_fields' ] ) ) {
-      // hrhs_debug( 'search_fields:' );
-      // hrhs_debug( $_GET[ 'search_fields' ] );
       $selected_fields = $_GET[ 'search_fields' ];
     }
 

@@ -53,12 +53,10 @@ final class HRHS_Elementor_Widgets {
   }
 
   public function __construct() {
-    // hrhs_debug( 'Inside HRHS_Elementor_Widgets::__construct()' );
     add_action( 'elementor/init', array( $this, 'init' ) );
   }
   
   public function init() {
-    // hrhs_debug( 'Inside HRHS_Elementor_Widgets::init()' );
     // Register the widgets
     add_action( 'elementor/widgets/widgets_registered', array( $this, 'register_widgets' ) );
   }

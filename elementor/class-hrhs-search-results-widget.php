@@ -54,7 +54,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
   // Register the widget controls
   // Adds different input fields to allow the user to change and customize the widget settings
   protected function _register_controls() {
-    // hrhs_debug( 'Inside HRHS_Search_Results_Widget::_register_controls()');
     
     // FIXME: Are there any settings I need for the search results?
     //        More importantly, do I need a controls section if there are no controls?
@@ -69,8 +68,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
   }
 
   private function gen_pagination_links( $params = array() ) {
-    hrhs_debug( 'gen_pagination_links called with params: ' );
-    hrhs_debug( $params );
     // Get the current page number out of the params
     $current_page = empty( $params[ 'current_page' ] ) ? 1 : intval( $params[ 'current_page' ] );
 
@@ -80,11 +77,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     if ( 1 === $last_page ) {
       return;
     }
-
-    // Get the query_vars out of the params
-    // $query_vars = empty( $params[ 'query_vars' ] ) ? array() : $params[ 'query_vars' ];
-    // hrhs_debug( 'gen_pagination_links: query_vars' );
-    // hrhs_debug( $query_vars );
 
     // Echo the links
     // TODO: Been going back and forth in my head as to what is the best way to display the links.
@@ -219,8 +211,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     if ( null !== $search_obj ) {
       // Get the selected search fields (if present)
       $selected_fields = empty( $_GET[ 'search_fields' ] ) ? array() : $_GET[ 'search_fields' ];
-      // hrhs_debug( 'SearchResultsWidget: Selected fields' );
-      // hrhs_debug( $selected_fields );
 
       // Get the number of results per page (if present)
       // FIXME: Hard coded default needs to come from a centralized location
@@ -247,8 +237,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
         },
         $sortable_fields
       );
-      // hrhs_debug( 'Sort order before:' );
-      // hrhs_debug( $sort_order );
       if ( ! empty( $_GET[ 'sort_field' ] ) ) {
         // If a sort field was provided in the url...
         // (NOTE: I'm using the $_GET value for the test since $sort_field has a default)
@@ -258,8 +246,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
           array_filter( $sort_order, function ( $elm ) use ( $sort_field ) { return $elm[ 'slug' ] !== $sort_field; } )
         );
       }
-      // hrhs_debug( 'Sort order after:' );
-      // hrhs_debug( $sort_order );
 
       // Get the search results to be displayed
       // FIXME: This will need some major work when merged back into main
@@ -275,7 +261,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
 
       // Get the total number of results (not just the ones being displayed)
       // FIXME: Needs a new function in HRHS_Simple_Search
-      // $total_results = count( $search_results );
       $total_results = $search_results[ 'found_results' ];
 
       ?>
@@ -288,16 +273,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
           //    1. The number of results per page is not 'all'
           //    2. There is more than 1 page of results
           $display_pagination = 'all' !== $num_results && $total_results > intval( $num_results );
-          hrhs_debug( sprintf( 'Pagination links %s be displayed with %s of %s results', $display_pagination ? 'will' : 'will not', $num_results, $total_results ) );
           if ( $display_pagination ) {
-            // Get the interesting query vars from the current page
-            // $pagination_query_vars = array();
-            // if ( ! empty( $_GET[ 'search_type' ] ) )   { $pagination_query_vars[ 'search_type' ] = $_GET[ 'search_type' ]; }
-            // if ( ! empty( $_GET[ 'search' ] ) )        { $pagination_query_vars[ 'search' ] = $_GET[ 'search' ]; }
-            // if ( ! empty( $_GET[ 'search_fields' ] ) ) { $pagination_query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ]; }
-            // if ( ! empty( $_GET[ 'num_results' ] ) )   { $pagination_query_vars[ 'num_results' ] = $_GET[ 'num_results' ]; }
-            // hrhs_debug( 'pagination_query_vars' );
-            // hrhs_debug( $pagination_query_vars );
             // Calculate the last page of the pagination
             $last_page = intval( ceil( $total_results / intval( $num_results ) ) );
             // Display the pagination links
@@ -305,7 +281,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
               array( 
                 'current_page' => $page_num,
                 'last_page' => $last_page,
-                // 'query_vars' => $pagination_query_vars
               )
             );
           }
@@ -334,14 +309,12 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
                       // If this is not the currently sorted field or the currently sorted field is desc, the opposite direction is asc, otherwise it is desc
                       $is_current_sort_field = $sort_field === $field[ 'slug' ];
                       $opposite_sort_dir = ! $is_current_sort_field || 'desc' === $sort_dir ? 'asc' : 'desc';
-                      // hrhs_debug( sprintf( 'Field %s %s the current sort field, the opposite sort direction is %s', $field[ 'slug' ], $is_current_sort_field ? 'is' : 'is not', $opposite_sort_dir ) );
                       $sorting_link = $this->gen_search_url(
                         array(
                           'sort_field' => $field[ 'slug' ],
                           'sort_dir' => $opposite_sort_dir,
                         )
                       );
-                      // $column_heading = '<a href="' . $sorting_link . '">' . $column_heading . '<span class="hrhs-sort-indicator asc"></span></a>';
                       $column_heading = sprintf(
                         '<a href="%s">%s<span class="hrhs-sort-indicator %s"></span></a>',
                         $sorting_link, $column_heading, $is_current_sort_field ? $sort_dir : ''
@@ -378,7 +351,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
               array( 
                 'current_page' => $page_num,
                 'last_page' => $last_page,
-                // 'query_vars' => $pagination_query_vars
               )
             );
           }

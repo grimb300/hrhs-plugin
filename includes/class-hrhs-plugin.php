@@ -89,9 +89,7 @@ class HRHS_Plugin {
 
     $this->load_dependencies();
     $this->instantiate_post_types();
-    // $this->instantiate_search_page();
     add_action( 'plugins_loaded', array( $this, 'register_elementor_widgets' ) );
-    // $this->register_elementor_widgets();
     add_action( 'wp_authenticate', array( $this, 'hrhs_handle_empty_login' ), 1, 2 );
     add_action( 'wp_login_failed', array( $this, 'hrhs_handle_failed_login' ) );
 
@@ -158,7 +156,6 @@ class HRHS_Plugin {
     }
 
     // Once we get here, We have passed all validation checks so we can safely include our widgets.
-    // hrhs_debug( 'HRHS_Elementor_Widgets has met all of the requirements, loading widgets' );
     require_once HRHS_PLUGIN_PATH . 'elementor/class-hrhs-elementor-widgets.php';
   }
 
@@ -170,7 +167,6 @@ class HRHS_Plugin {
 
   // Elegantly handle member logins with empty credentials from non-admin pages
   public function hrhs_handle_empty_login( $username, $pwd ) {
-    // hrhs_debug( 'Inside hrhs_handle_empty_login()' );
     $referer = $this->hrhs_get_referer();
     // If there's a valid referer and it is not the default WP login or admin page
     if ( ! empty( $referer ) && ! strstr( $referer, 'wp-login' ) && ! strstr( $referer, 'wp-admin' ) ) {
@@ -187,7 +183,6 @@ class HRHS_Plugin {
   
   // Elegantly handle failed member logins from non-admin pages
   public function hrhs_handle_failed_login( $username ) {
-    // hrhs_debug( 'Inside hrhs_handle_failed_login()' );
     $referer = $this->hrhs_get_referer();
     // If there's a valid referer and it is not the default WP login or admin page
     if ( ! empty( $referer ) && ! strstr( $referer, 'wp-login' ) && ! strstr( $referer, 'wp-admin' ) ) {
@@ -219,7 +214,6 @@ class HRHS_Plugin {
     // Create the default HRHS member user (if necessary)
     // NOTE: The email MUST be unique to all other users
     if ( ! get_user_by( 'login', 'HRHS-MEMBER' ) ) {
-      // hrhs_debug( 'User HRHS-MEMBER does not exist, creating...' );
       wp_insert_user( array(
         'user_login' => 'HRHS-MEMBER',
         'user_pass' => 'STORIES',
@@ -230,8 +224,6 @@ class HRHS_Plugin {
         'role' => 'subscriber',
         'show_admin_bar_front' => true
       ) );
-    } else {
-      // hrhs_debug( 'User HRHS-MEMBER already exists, do nothing' );
     }
   }
 
@@ -241,13 +233,4 @@ class HRHS_Plugin {
     flush_rewrite_rules();
   }
 
-  /* ******************
-   * Accessor functions
-   * ******************/
-
-  // Get the search post types/fields
-  // TODO: Commenting out until I find a use for it
-  // public function get_search_types_fields() {
-  //   return $this->search_page->get_search_types_fields();
-  // }
 }
