@@ -115,12 +115,40 @@ class HRHS_Simple_Search {
     //////////////////////////
 
     // Create a meta query for the necessary fields
+    // This complex-ish meta query will look like:
+    //   results = ( ( field1 = needle1 ) OR ( field2 = needle1 ) OR ( field1 = needle2 ) OR ( field2 = needle2 ) OR ... )
+    //             AND field1 exists AND field2 exists AND ...
+    // The fieldx exists terms are used only for sorting purposes
+    //
+    // SQL code break -- The generated SQL query looks like:
+    //   SELECT SQL_CALC_FOUND_ROWS  wp_posts.ID FROM wp_posts
+    //   INNER JOIN wp_postmeta ON ( wp_posts.ID = wp_postmeta.post_id )
+    //   INNER JOIN wp_postmeta AS mt1 ON ( wp_posts.ID = mt1.post_id )
+    //   INNER JOIN wp_postmeta AS mt2 ON ( wp_posts.ID = mt2.post_id )
+    //   WHERE 1=1  AND ( 
+    //     ( 
+    //       ( wp_postmeta.meta_key = 'surname' AND wp_postmeta.meta_value LIKE '%a%' ) 
+    //       OR 
+    //       ( wp_postmeta.meta_key = 'givenname' AND wp_postmeta.meta_value LIKE '%a%' )
+    //     ) 
+    //     AND 
+    //     mt1.meta_key = 'surname' 
+    //     AND 
+    //     mt2.meta_key = 'givenname'
+    //   ) AND wp_posts.post_type = 'name_entry' AND ((wp_posts.post_status = 'publish'))
+    //   GROUP BY wp_posts.ID
+    //   ORDER BY CAST(mt1.meta_value AS CHAR) ASC, CAST(mt2.meta_value AS CHAR) ASC
+    //   LIMIT 0, 50
+    // END SQL code break
     $meta_query = array(
-      'relation' => 'AND', // Needle must match at least one field
+      'relation' => 'AND', // The search_clause will be ANDed with any sorting clauses (shouldn't affect the results)
+      'search_clause' => array(
+        'relation' => 'OR', // The individual searches are ORed
+      )
     );
     foreach( $search_fields as $field ) {
-      $search_clause = $field[ 'slug' ] . '_clause';
-      $meta_query[ $search_clause ] = array(
+      $search_clause = $field[ 'slug' ] . '_search_clause';
+      $meta_query[ 'search_clause' ][ $search_clause ] = array(
         'key' => $field[ 'slug' ],
         'value' => $needle,   // NOTE: Using LIKE will automagically add
         'compare' => 'LIKE',  //       SQL wildcards (%) around the value
@@ -132,15 +160,17 @@ class HRHS_Simple_Search {
       // If there isn't already a search clause for this field create a simple exists clause
       // FIXME: This seems dangerous. It won't display records where the meta value doesn't exist.
       //        Not sure if it's possible to guarantee add records have all meta values right now.
-      $sort_clause = $field[ 'slug' ] . '_clause';
-      if ( ! array_key_exists( $sort_clause, $meta_query ) ) {
+      $sort_clause = $field[ 'slug' ] . '_sort_clause';
+      // if ( ! array_key_exists( $sort_clause, $meta_query ) ) {
         $meta_query[ $sort_clause ] = array(
           'key' => $field[ 'slug' ],
           'compare' => 'EXISTS',
         );
-      }
+      // }
       $orderby[ $sort_clause ] = strtoupper( $field[ 'dir' ] );
     }
+    // hrhs_debug( 'Meta query:' );
+    // hrhs_debug( $meta_query );
     // Build the query for this haystack
     $get_posts_query = array(
       'posts_per_page' => $num_results,
@@ -172,6 +202,9 @@ class HRHS_Simple_Search {
 
     // NOTE: Have to put a backslash in front of WP_Query to find it in the global namespace
     $my_query = new \WP_Query( $get_posts_query );
+
+    // hrhs_debug( 'MySQL request:' );
+    // hrhs_debug( $my_query->request );
 
     // Return the search results
     // FIXME: When merging back into main...
