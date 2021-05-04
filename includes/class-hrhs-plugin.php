@@ -30,8 +30,8 @@ class HRHS_Plugin {
         'plural_name' => 'Name Entries',
         // TODO: Verify which fields should be searchable, currently following what was done on old site
         'fields' => array(
-          array( 'label' => 'Surname',     'slug' => 'surname',   'search' => 'all',    'display' => 'all',   'default_search' => true, 'default_sort' => 1 ),
-          array( 'label' => 'Given Name',  'slug' => 'givenname', 'search' => 'member', 'display' => 'all',                             'default_sort' => 2 ),
+          array( 'label' => 'Surname',     'slug' => 'surname',   'search' => 'all',    'display' => 'all',   'default_search' => true, 'default_sort' => 1, 'default_sort_dir' => 'asc' ),
+          array( 'label' => 'Given Name',  'slug' => 'givenname', 'search' => 'member', 'display' => 'all',                             'default_sort' => 2, 'default_sort_dir' => 'asc' ),
           array( 'label' => 'Birth',       'slug' => 'birth',     'search' => 'none',   'display' => 'member' ),
           array( 'label' => 'Death',       'slug' => 'death',     'search' => 'none',   'display' => 'member' ),
           array( 'label' => 'Marriage',    'slug' => 'marriage',  'search' => 'none',   'display' => 'member' ),
@@ -49,7 +49,7 @@ class HRHS_Plugin {
           array( 'label' => 'Year',       'slug' => 'year',  'search' => 'member', 'display' => 'member' ),
           array( 'label' => 'Newspaper',  'slug' => 'news',  'search' => 'none',   'display' => 'member' ),
           array( 'label' => 'Pages',      'slug' => 'pages', 'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Sort Order', 'slug' => 'sort',  'search' => 'none',   'display' => 'none',  'default_sort' => 1 ),
+          array( 'label' => 'Sort Order', 'slug' => 'sort',  'search' => 'none',   'display' => 'none',  'default_sort' => 1, 'default_sort_dir' => 'asc' ),
         ),
       ),
       'place_entry' => array(
@@ -58,8 +58,8 @@ class HRHS_Plugin {
         'plural_name' => 'Place Entries',
         // TODO: Verify which fields should be searchable, currently following what was done on old site
         'fields' => array(
-          array( 'label' => 'Placename',  'slug' => 'placename',  'search' => 'member', 'display' => 'member', 'default_sort' => 1 ),
-          array( 'label' => 'Othername',  'slug' => 'othername',  'search' => 'none',   'display' => 'member', 'default_sort' => 2 ),
+          array( 'label' => 'Placename',  'slug' => 'placename',  'search' => 'member', 'display' => 'member', 'default_sort' => 1, 'default_sort_dir' => 'asc' ),
+          array( 'label' => 'Othername',  'slug' => 'othername',  'search' => 'none',   'display' => 'member', 'default_sort' => 2, 'default_sort_dir' => 'asc' ),
           array( 'label' => 'Location',   'slug' => 'location',   'search' => 'none',   'display' => 'member' ),
           array( 'label' => 'Remarks',    'slug' => 'remarks',    'search' => 'none',   'display' => 'member' ),
           array( 'label' => 'Infosource', 'slug' => 'infosource', 'search' => 'none',   'display' => 'member' ),

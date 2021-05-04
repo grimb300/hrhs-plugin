@@ -124,8 +124,8 @@ class HRHS_Simple_Search {
 
     // Get the desired sort order
     $sort_order = empty( $params[ 'sort' ] ) ? array() : $params[ 'sort' ];
-    hrhs_debug( 'Sort order is:' );
-    hrhs_debug( $sort_order );
+    // hrhs_debug( 'Sort order is:' );
+    // hrhs_debug( $sort_order );
 
     // Done getting the params
     //////////////////////////
@@ -145,22 +145,23 @@ class HRHS_Simple_Search {
     // Add sort ordering
     $orderby = array();
     foreach( $sort_order as $field ) {
-      hrhs_debug( 'Sorting field ' . $field );
+      // hrhs_debug( 'Sorting field ' . $field );
       // If there isn't already a search clause for this field create a simple exists clause
       // FIXME: This seems dangerous. It won't display records where the meta value doesn't exist.
       //        Not sure if it's possible to guarantee add records have all meta values right now.
-      $sort_clause = $field . '_clause';
+      $sort_clause = $field[ 'slug' ] . '_clause';
       if ( ! array_key_exists( $sort_clause, $meta_query ) ) {
         $meta_query[ $sort_clause ] = array(
-          'key' => $field,
+          'key' => $field[ 'slug' ],
           'compare' => 'EXISTS',
         );
       }
-      $orderby[ $sort_clause ] = 'ASC';
+      // $orderby[ $sort_clause ] = 'ASC';
+      $orderby[ $sort_clause ] = strtoupper( $field[ 'dir' ] );
     }
-    hrhs_debug( 'Meta query and orderby:' );
-    hrhs_debug( $meta_query );
-    hrhs_debug( $orderby );
+    // hrhs_debug( 'Meta query and orderby:' );
+    // hrhs_debug( $meta_query );
+    // hrhs_debug( $orderby );
     // Build the query for this haystack
     $get_posts_query = array(
       'posts_per_page' => $num_results,

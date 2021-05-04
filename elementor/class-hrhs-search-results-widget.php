@@ -80,7 +80,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     }
 
     // Get the query_vars out of the params
-    $query_vars = empty( $params[ 'query_vars' ] ) ? array() : $params[ 'query_vars' ];
+    // $query_vars = empty( $params[ 'query_vars' ] ) ? array() : $params[ 'query_vars' ];
     // hrhs_debug( 'gen_pagination_links: query_vars' );
     // hrhs_debug( $query_vars );
 
@@ -140,7 +140,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       // Now iterate across the links to render
       foreach ( $pages_to_render as $page ) {
         // Add this page to the query vars
-        $query_vars[ 'results_page' ] = $page;
+        $query_vars = array( 'results_page'  => $page );
 
         // Render the appropriate span
         if ( -1 === $page ) {
@@ -156,7 +156,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
         } else {
           // Render the link
           ?>
-          <span class="direct-page page-num-<?php echo $page; ?>"><a href="<?php echo $this->gen_pagination_url( $query_vars ); ?>"><?php echo $page; ?></a></span>
+          <span class="direct-page page-num-<?php echo $page; ?>"><a href="<?php echo $this->gen_search_url( $query_vars ); ?>"><?php echo $page; ?></a></span>
           <?php
         }
       }
@@ -165,7 +165,24 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     <?php
   }
 
-  private function gen_pagination_url( $query_vars = array() ) {
+  // Generic function that will take the current search and add the provided query_vars, returning the new url
+  private function gen_search_url( $add_query_vars = array() ) {
+    // Grab the interesting query vars from the current url
+    $query_vars = array();
+    if ( ! empty( $_GET[ 'search_type' ] ) )   { $query_vars[ 'search_type' ]   = $_GET[ 'search_type' ];   }
+    if ( ! empty( $_GET[ 'search' ] ) )        { $query_vars[ 'search' ]        = $_GET[ 'search' ];        }
+    if ( ! empty( $_GET[ 'search_fields' ] ) ) { $query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ]; }
+    if ( ! empty( $_GET[ 'num_results' ] ) )   { $query_vars[ 'num_results' ]   = $_GET[ 'num_results' ];   }
+
+    // Remove any unwanted query vars
+    // FIXME: Not implemented yet. Will likely add a second $sub_query_vars parameter
+
+    // Add new query vars
+    foreach ( $add_query_vars as $new_var => $new_val ) {
+      $query_vars[ $new_var ] = $new_val;
+    }
+
+    // Return the generated url
     return get_page_link() . '?' . http_build_query( $query_vars );
   }
 
@@ -204,16 +221,37 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       // Get the page number to display
       $page_num = empty( $_GET[ 'results_page' ] ) ? 1 : $_GET[ 'results_page' ];
 
-      // Get the default sort order
+      // Get the sortable fields from the fields definition
       $sortable_fields = $search_obj->get_default_sort();
-      hrhs_debug( 'Default search order:' );
-      hrhs_debug( $sortable_fields );
 
-      // Sort on the request query field, if present. Otherwise, use default sort order.
-      $sort_order =
-        empty( $_GET[ 'sort_field' ] )
-        ? array_map( function ( $field ) { return $field[ 'slug' ]; }, $sortable_fields )
-        : array( $_GET[ 'sort_field' ] );
+      // Get the sort field and direction from the url
+      // Defaults to the first sortable_field slug and default_sort_dir, respectively
+      $sort_field = empty( $_GET[ 'sort_field' ] ) ? $sortable_fields[0][ 'slug' ]             : $_GET[ 'sort_field' ];
+      $sort_dir   = empty( $_GET[ 'sort_dir' ] )   ? $sortable_fields[0][ 'default_sort_dir' ] : $_GET[ 'sort_dir' ];
+
+      // Build the sort order based on the request query fields, if present. Otherwise, use default sort order.
+      $sort_order = array_map(
+        function ( $field ) {
+          return array(
+            'slug' => $field[ 'slug' ],
+            'dir' => $field[ 'default_sort_dir' ],
+          );
+        },
+        $sortable_fields
+      );
+      // hrhs_debug( 'Sort order before:' );
+      // hrhs_debug( $sort_order );
+      if ( ! empty( $_GET[ 'sort_field' ] ) ) {
+        // If a sort field was provided in the url...
+        // (NOTE: I'm using the $_GET value for the test since $sort_field has a default)
+        // remove it from the current $sort_order array and add the new value to the front
+        $sort_order = array_merge(
+          array( array( 'slug' => $sort_field, 'dir' => $sort_dir ) ), // NOTE: This is an array of associative arrays
+          array_filter( $sort_order, function ( $elm ) use ( $sort_field ) { return $elm[ 'slug' ] !== $sort_field; } )
+        );
+      }
+      // hrhs_debug( 'Sort order after:' );
+      // hrhs_debug( $sort_order );
 
       // Get the search results to be displayed
       // FIXME: This will need some major work when merged back into main
@@ -224,7 +262,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
           'num_results' => $num_results,
           'page_num' => $page_num,
           'sort' => $sort_order,
-          // 'sort' => $sortable_fields,
         )
       );
 
@@ -245,11 +282,11 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
           $display_pagination = 'all' !== $num_results && $total_results <= intval( $num_results );
           if ( $display_pagination ) {
             // Get the interesting query vars from the current page
-            $pagination_query_vars = array();
-            if ( ! empty( $_GET[ 'search_type' ] ) )   { $pagination_query_vars[ 'search_type' ] = $_GET[ 'search_type' ]; }
-            if ( ! empty( $_GET[ 'search' ] ) )        { $pagination_query_vars[ 'search' ] = $_GET[ 'search' ]; }
-            if ( ! empty( $_GET[ 'search_fields' ] ) ) { $pagination_query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ]; }
-            if ( ! empty( $_GET[ 'num_results' ] ) )   { $pagination_query_vars[ 'num_results' ] = $_GET[ 'num_results' ]; }
+            // $pagination_query_vars = array();
+            // if ( ! empty( $_GET[ 'search_type' ] ) )   { $pagination_query_vars[ 'search_type' ] = $_GET[ 'search_type' ]; }
+            // if ( ! empty( $_GET[ 'search' ] ) )        { $pagination_query_vars[ 'search' ] = $_GET[ 'search' ]; }
+            // if ( ! empty( $_GET[ 'search_fields' ] ) ) { $pagination_query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ]; }
+            // if ( ! empty( $_GET[ 'num_results' ] ) )   { $pagination_query_vars[ 'num_results' ] = $_GET[ 'num_results' ]; }
             // hrhs_debug( 'pagination_query_vars' );
             // hrhs_debug( $pagination_query_vars );
             // Display the pagination links
@@ -257,7 +294,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
               array( 
                 'current_page' => $page_num,
                 'last_page' => ceil( $total_results / intval( $num_results ) ),
-                'query_vars' => $pagination_query_vars
+                // 'query_vars' => $pagination_query_vars
               )
             );
           }
@@ -269,7 +306,38 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
               <tbody>
                 <tr>
                   <?php foreach ( $display_fields as $field ) { ?>
-                    <th scope="col"><?php echo $field[ 'label' ]; ?></th>
+                    <?php
+                    // Create the column heading
+                    $column_heading = '<span>' . $field[ 'label' ] . '</span>';
+
+                    // If this is a sortable field, add sorting links/indicator
+                    $field_is_sortable = ! empty(
+                      array_filter(
+                        $sortable_fields,
+                        function ( $sort_field ) use ( $field ) {
+                          return $field[ 'slug' ] === $sort_field[ 'slug' ];
+                        }
+                      )
+                    );
+                    if ( $field_is_sortable ) {
+                      // If this is not the currently sorted field or the currently sorted field is desc, the opposite direction is asc, otherwise it is desc
+                      $is_current_sort_field = $sort_field === $field[ 'slug' ];
+                      $opposite_sort_dir = ! $is_current_sort_field || 'desc' === $sort_dir ? 'asc' : 'desc';
+                      // hrhs_debug( sprintf( 'Field %s %s the current sort field, the opposite sort direction is %s', $field[ 'slug' ], $is_current_sort_field ? 'is' : 'is not', $opposite_sort_dir ) );
+                      $sorting_link = $this->gen_search_url(
+                        array(
+                          'sort_field' => $field[ 'slug' ],
+                          'sort_dir' => $opposite_sort_dir,
+                        )
+                      );
+                      // $column_heading = '<a href="' . $sorting_link . '">' . $column_heading . '<span class="hrhs-sort-indicator asc"></span></a>';
+                      $column_heading = sprintf(
+                        '<a href="%s">%s<span class="hrhs-sort-indicator %s"></span></a>',
+                        $sorting_link, $column_heading, $is_current_sort_field ? $sort_dir : ''
+                      );
+                    }
+                    ?>
+                    <th scope="col"><?php echo $column_heading; ?></th>
                   <?php } ?>
                 </tr>
                 <?php foreach ( $search_results[ 'results' ] as $post_id ) { ?>
@@ -299,7 +367,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
               array( 
                 'current_page' => $page_num,
                 'last_page' => ceil( $total_results / intval( $num_results ) ),
-                'query_vars' => $pagination_query_vars
+                // 'query_vars' => $pagination_query_vars
               )
             );
           }

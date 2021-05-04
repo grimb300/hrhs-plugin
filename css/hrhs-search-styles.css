@@ -22,3 +22,45 @@
 .hrhs-option-wrap {
   display: flex;
 }
+
+/* *********************
+ * Sort indicator styles
+ * *********************/
+
+/* Default style */
+.hrhs-sort-indicator::before {
+  /* Many of these styles are borrowed from the post admin edit listing */
+  display: inline-block;
+  font-size: .7em;
+  padding: 1em .5em 0;
+  line-height: .5;
+  position: relative;
+  vertical-align: top;
+}
+
+/* Display the up or down arrow */
+.hrhs-sort-indicator.asc::before {
+  /* Up arrow */
+  content: "\25B2";
+}
+
+.hrhs-sort-indicator.desc::before {
+  /* Down arrow */
+  content: "\25BC";
+}
+
+/* On hover, display the opposite arrow */
+a:hover .hrhs-sort-indicator.asc::before {
+  /* Down arrow */
+  content: "\25BC";
+}
+
+a:hover .hrhs-sort-indicator::before,
+a:hover .hrhs-sort-indicator.desc::before {
+  /* Up arrow */
+  content: "\25B2";
+}
+
+/* th:hover {
+  background-color: blueviolet;
+} */
