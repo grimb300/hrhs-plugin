@@ -69,6 +69,8 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
   }
 
   private function gen_pagination_links( $params = array() ) {
+    hrhs_debug( 'gen_pagination_links called with params: ' );
+    hrhs_debug( $params );
     // Get the current page number out of the params
     $current_page = empty( $params[ 'current_page' ] ) ? 1 : intval( $params[ 'current_page' ] );
 
@@ -173,6 +175,12 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     if ( ! empty( $_GET[ 'search' ] ) )        { $query_vars[ 'search' ]        = $_GET[ 'search' ];        }
     if ( ! empty( $_GET[ 'search_fields' ] ) ) { $query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ]; }
     if ( ! empty( $_GET[ 'num_results' ] ) )   { $query_vars[ 'num_results' ]   = $_GET[ 'num_results' ];   }
+    // Choosing to not preserve the results_page (for now)
+    // This function is used by the pagination links (will update results_page anyway)
+    // and sorting links (which should reset to page 1/empty results_page)
+    // if ( ! empty( $_GET[ 'results_page' ] ) )   { $query_vars[ 'results_page' ]   = $_GET[ 'results_page' ];   }
+    if ( ! empty( $_GET[ 'sort_field' ] ) ) { $query_vars[ 'sort_field' ] = $_GET[ 'sort_field' ]; }
+    if ( ! empty( $_GET[ 'sort_dir' ] ) )   { $query_vars[ 'sort_dir' ]   = $_GET[ 'sort_dir' ];   }
 
     // Remove any unwanted query vars
     // FIXME: Not implemented yet. Will likely add a second $sub_query_vars parameter
@@ -279,7 +287,8 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
           // Display the pagination controls only if:
           //    1. The number of results per page is not 'all'
           //    2. There is more than 1 page of results
-          $display_pagination = 'all' !== $num_results && $total_results <= intval( $num_results );
+          $display_pagination = 'all' !== $num_results && $total_results > intval( $num_results );
+          hrhs_debug( sprintf( 'Pagination links %s be displayed with %s of %s results', $display_pagination ? 'will' : 'will not', $num_results, $total_results ) );
           if ( $display_pagination ) {
             // Get the interesting query vars from the current page
             // $pagination_query_vars = array();
@@ -289,11 +298,13 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
             // if ( ! empty( $_GET[ 'num_results' ] ) )   { $pagination_query_vars[ 'num_results' ] = $_GET[ 'num_results' ]; }
             // hrhs_debug( 'pagination_query_vars' );
             // hrhs_debug( $pagination_query_vars );
+            // Calculate the last page of the pagination
+            $last_page = intval( ceil( $total_results / intval( $num_results ) ) );
             // Display the pagination links
             $this->gen_pagination_links(
               array( 
                 'current_page' => $page_num,
-                'last_page' => ceil( $total_results / intval( $num_results ) ),
+                'last_page' => $last_page,
                 // 'query_vars' => $pagination_query_vars
               )
             );
@@ -366,7 +377,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
             $this->gen_pagination_links(
               array( 
                 'current_page' => $page_num,
-                'last_page' => ceil( $total_results / intval( $num_results ) ),
+                'last_page' => $last_page,
                 // 'query_vars' => $pagination_query_vars
               )
             );
