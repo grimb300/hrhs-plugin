@@ -36,6 +36,15 @@
   line-height: .5;
   position: relative;
   vertical-align: top;
+  /* Default: Up arrow, greyed out */
+  content: "\25B2";
+  opacity: 0.33;
+}
+
+/* Change the opacity when ascending or descending is selected */
+.hrhs-sort-indicator.asc::before,
+.hrhs-sort-indicator.desc::before {
+  opacity: 1;
 }
 
 /* Display the up or down arrow */
@@ -47,6 +56,11 @@
 .hrhs-sort-indicator.desc::before {
   /* Down arrow */
   content: "\25BC";
+}
+
+/* Change the opacity on hover */
+a:hover .hrhs-sort-indicator::before {
+  opacity: 1;
 }
 
 /* On hover, display the opposite arrow */
