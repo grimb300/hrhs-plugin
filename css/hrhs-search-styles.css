@@ -22,7 +22,7 @@
 .hrhs-option-wrap {
   display: flex;
   /* justify-content: space-between; */
-  margin-top: 1em;
+  /* margin-top: 1em; */
 }
 
 .hrhs-search-fields-wrap,
