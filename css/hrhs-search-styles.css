@@ -78,3 +78,119 @@ a:hover .hrhs-sort-indicator.desc::before {
 /* th:hover {
   background-color: blueviolet;
 } */
+
+/* *************************
+ * Print view related styles
+ * *************************/
+
+@page {
+  margin: 1cm;
+  size: auto;
+}
+
+@media print {
+
+  /* Reset the body colors and margins */
+  body {
+    margin: 0;
+    color: #000;
+    background-color: #fff;
+  }
+
+  /* Reset table styles */
+  .scheme_default table td,
+  .scheme_default table td+td,
+  .scheme_default table th,
+  .scheme_default table th a,
+  .scheme_default table>tbody>tr:nth-child(2n)>td,
+  .scheme_default table>tbody>tr:nth-child(2n+1)>td {
+    color: #000;
+    background-color: #fff;
+    border: 1px solid #000;
+    font-size: 12px;
+  }
+
+  /* Remove the sort indicator */
+  .hrhs-sort-indicator::before,
+  .hrhs-sort-indicator.asc::before,
+  .hrhs-sort-indicator.desc::before {
+    display: none;
+  }
+
+  /* Ensure that a page break doesn't happen inside a table row */
+  tr {
+    break-inside: avoid;
+  }
+
+  /* Figure out how to get the table to stretch to page width */
+  /* .page_content_wrap,
+  .content_wrap {
+    border: 1px solid black;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .content_wrap {
+    border: 1px solid black;
+  } */
+
+  /* content_wrap has been the problem child for the table width the whole time, no idea why */
+  .content_wrap {
+    width: 100% !important;
+  }
+
+  /* Old stuff */
+
+  header,
+  footer,
+  h1.elementor-heading-title,
+  .hrhs_search_form_wrap,
+  .hrhs_member_login_wrap,
+  .ozeum_skip_link_anchor,
+  .ozeum_skip_link,
+  .menu_mobile_overlay,
+  .menu_mobile,
+  .trx_addons_scroll_to_top,
+  .content_wrap::after {
+    display: none !important;
+  }
+
+  /* .page_content_wrap {
+    padding: 0;
+  }
+
+  .content_wrap {
+    margin: 0;
+    width: 100%;
+  } */
+
+  /* .sidebar_hide [class*="content_wrap"] > .content {
+    margin: 0;
+  } */
+
+  /* .page_content_wrap .content_wrap {
+    position: static;
+  } */
+
+  .elementor-section .elementor-container {
+    margin: 0;
+  }
+
+  .elementor-section.elementor-section-boxed>.elementor-container.elementor-column-gap-extended {
+    max-width: 100%;
+  }
+
+
+  table {
+    width: 100%;
+  }
+
+  .elementor-section .elementor-container,
+  .elementor-row,
+  .elementor-column,
+  .elementor-column-wrap,
+  .elementor:not(.elementor-bc-flex-widget) .elementor-widget-wrap {
+    display: block;
+  }
+}
