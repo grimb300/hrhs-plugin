@@ -48,7 +48,7 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
 
   // Enqueue styles
   public function get_style_depends() {
-    return array( 'hrhs_search_styles_css' );
+    return array( 'hrhs_search_styles_css', 'dashicons' );
   }
 
   // Register the widget controls
