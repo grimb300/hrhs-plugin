@@ -21,6 +21,24 @@
 
 .hrhs-option-wrap {
   display: flex;
+  /* justify-content: space-between; */
+  margin-top: 1em;
+}
+
+.hrhs-search-fields-wrap,
+.hrhs-search-results-per-page-wrap {
+  padding-left: 2em;
+}
+
+.hrhs-search-fields {
+  display: flex;
+  flex-direction: column;
+}
+
+.hrhs-search-fields>label>input,
+.hrhs-search-results-per-page>select {
+  margin-left: 1em;
+  margin-right: .5em;
 }
 
 /* *********************
