@@ -253,6 +253,11 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
         // If any results were returned, display them here
         if ( $total_results > 0 ) {
 
+          // Display a "print these results" link
+          ?>
+          <a class="print-page" href="javascript:window.print()"><span class="dashicons dashicons-printer"></span> Print</a>
+          <?php
+
           // Calculate the last page of the pagination
           $last_page = intval( ceil( $total_results / intval( $num_results ) ) );
           // Display the pagination links
