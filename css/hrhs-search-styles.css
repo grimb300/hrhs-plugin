@@ -2,30 +2,228 @@
  * Member login styles 
  * *******************/
 
-/* #hrhs_search_wrap {
+#hrhs_member_login_form .login-username {
+  display: none;
+}
+
+/* ******************
+ * Search form styles
+ * ******************/
+
+/* .hrhs-form-layout-wrap {
   display: flex;
-  flex-wrap: nowrap;
 } */
 
-/* #hrhs_search_form_wrap {
-  flex-basis: auto;
-  flex-grow: 1;
-} */
-
-/* #hrhs_search_widget_wrap {
-  flex-basis: 20ch;
-  flex-grow: 0;
-} */
-
-/* #hrhs_member_login_info {
+/* .hrhs-input-wrap {
   display: flex;
   flex-direction: column;
 } */
 
-/* #hrhs_member_login_form {
+.hrhs-option-wrap {
   display: flex;
+  /* justify-content: space-between; */
+  /* margin-top: 1em; */
+}
+
+.hrhs-search-fields-wrap,
+.hrhs-search-results-per-page-wrap {
+  padding-left: 2em;
+}
+
+.hrhs-search-fields {
+  display: flex;
+  flex-direction: column;
+}
+
+.hrhs-search-fields>label>input,
+.hrhs-search-results-per-page>select {
+  margin-left: 1em;
+  margin-right: .5em;
+}
+
+/* *********************
+ * Sort indicator styles
+ * *********************/
+
+/* Default style */
+.hrhs-sort-indicator::before {
+  /* Many of these styles are borrowed from the post admin edit listing */
+  display: inline-block;
+  font-size: .7em;
+  padding: 1em .5em 0;
+  line-height: .5;
+  position: relative;
+  vertical-align: top;
+  /* Default: Up arrow, greyed out */
+  content: "\25B2";
+  opacity: 0.33;
+}
+
+/* Change the opacity when ascending or descending is selected */
+.hrhs-sort-indicator.asc::before,
+.hrhs-sort-indicator.desc::before {
+  opacity: 1;
+}
+
+/* Display the up or down arrow */
+.hrhs-sort-indicator.asc::before {
+  /* Up arrow */
+  content: "\25B2";
+}
+
+.hrhs-sort-indicator.desc::before {
+  /* Down arrow */
+  content: "\25BC";
+}
+
+/* Change the opacity on hover */
+a:hover .hrhs-sort-indicator::before {
+  opacity: 1;
+}
+
+/* On hover, display the opposite arrow */
+a:hover .hrhs-sort-indicator.asc::before {
+  /* Down arrow */
+  content: "\25BC";
+}
+
+a:hover .hrhs-sort-indicator::before,
+a:hover .hrhs-sort-indicator.desc::before {
+  /* Up arrow */
+  content: "\25B2";
+}
+
+/* th:hover {
+  background-color: blueviolet;
 } */
 
-#hrhs_member_login_form .login-username {
-  display: none;
+/* *************************
+ * Print view related styles
+ * *************************/
+
+@page {
+  margin: 1cm;
+  size: auto;
+}
+
+@media print {
+
+  /* Reset the body colors and margins */
+  body {
+    margin: 0;
+    color: #000;
+    background-color: #fff;
+  }
+
+  /* Reset table styles */
+  .scheme_default table td,
+  .scheme_default table td+td,
+  .scheme_default table th,
+  .scheme_default table th a,
+  .scheme_default table>tbody>tr:nth-child(2n)>td,
+  .scheme_default table>tbody>tr:nth-child(2n+1)>td {
+    color: #000;
+    background-color: #fff;
+    font-size: 12px;
+  }
+  
+  /* Put box around each th/td on the table */
+  .scheme_default table td,
+  .scheme_default table th {
+    border: 1px solid #000;
+  }
+
+  /* Remove the sort indicator */
+  .hrhs-sort-indicator::before,
+  .hrhs-sort-indicator.asc::before,
+  .hrhs-sort-indicator.desc::before {
+    display: none;
+  }
+
+  /* Remove the print link */
+  .print-page {
+    display: none;
+  }
+
+  /* Remove the pagination links */
+  .pagination {
+    display: none;
+  }
+
+  /* Ensure that a page break doesn't happen inside a table row */
+  tr {
+    break-inside: avoid;
+  }
+
+  /* Figure out how to get the table to stretch to page width */
+  /* .page_content_wrap,
+  .content_wrap {
+    border: 1px solid black;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .content_wrap {
+    border: 1px solid black;
+  } */
+
+  /* content_wrap has been the problem child for the table width the whole time, no idea why */
+  .content_wrap {
+    width: 100% !important;
+  }
+
+  /* Old stuff */
+
+  header,
+  footer,
+  h1.elementor-heading-title,
+  .hrhs_search_form_wrap,
+  .hrhs_member_login_wrap,
+  .ozeum_skip_link_anchor,
+  .ozeum_skip_link,
+  .menu_mobile_overlay,
+  .menu_mobile,
+  .trx_addons_scroll_to_top,
+  .content_wrap::after {
+    display: none !important;
+  }
+
+  /* .page_content_wrap {
+    padding: 0;
+  }
+
+  .content_wrap {
+    margin: 0;
+    width: 100%;
+  } */
+
+  /* .sidebar_hide [class*="content_wrap"] > .content {
+    margin: 0;
+  } */
+
+  /* .page_content_wrap .content_wrap {
+    position: static;
+  } */
+
+  .elementor-section .elementor-container {
+    margin: 0;
+  }
+
+  .elementor-section.elementor-section-boxed>.elementor-container.elementor-column-gap-extended {
+    max-width: 100%;
+  }
+
+
+  table {
+    width: 100%;
+  }
+
+  .elementor-section .elementor-container,
+  .elementor-row,
+  .elementor-column,
+  .elementor-column-wrap,
+  .elementor:not(.elementor-bc-flex-widget) .elementor-widget-wrap {
+    display: block;
+  }
 }

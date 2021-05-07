@@ -74,6 +74,14 @@ class HRHS_Plugin {
             'search' => 'none',        'display' => 'none',
             'sql_data_type' => 'int(9)', // Data type from legacy MySQL database
             ),
+          array( 'label' => 'Surname',     'slug' => 'surname',   'search' => 'all',    'display' => 'all',   'default_search' => true, 'default_sort' => 1, 'default_sort_dir' => 'asc' ),
+          array( 'label' => 'Given Name',  'slug' => 'givenname', 'search' => 'member', 'display' => 'all',                             'default_sort' => 2, 'default_sort_dir' => 'asc' ),
+          array( 'label' => 'Birth',       'slug' => 'birth',     'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Death',       'slug' => 'death',     'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Marriage',    'slug' => 'marriage',  'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Remarks',     'slug' => 'remarks',   'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Information', 'slug' => 'infoname',  'search' => 'none',   'display' => 'all' ),
+          array( 'label' => 'ID',          'slug' => 'ID',        'search' => 'none',   'display' => 'none' ),
         ),
         'database_version' => '0.1',
       ),
@@ -103,6 +111,10 @@ class HRHS_Plugin {
             'search' => 'none',   'display' => 'none',
             'sql_data_type' => 'varchar(6)', // Data type from legacy MySQL database
           ), // Order first,
+          array( 'label' => 'Year',       'slug' => 'year',  'search' => 'member', 'display' => 'member' ),
+          array( 'label' => 'Newspaper',  'slug' => 'news',  'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Pages',      'slug' => 'pages', 'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Sort Order', 'slug' => 'sort',  'search' => 'none',   'display' => 'none',  'default_sort' => 1, 'default_sort_dir' => 'asc' ),
         ),
         'database_version' => '0.1',
       ),
@@ -142,6 +154,12 @@ class HRHS_Plugin {
             'search' => 'none',   'display' => 'member',
             'sql_data_type' => 'varchar(12)', // Data type from legacy MySQL database
           ),
+          array( 'label' => 'Placename',  'slug' => 'placename',  'search' => 'member', 'display' => 'member', 'default_sort' => 1, 'default_sort_dir' => 'asc' ),
+          array( 'label' => 'Othername',  'slug' => 'othername',  'search' => 'none',   'display' => 'member', 'default_sort' => 2, 'default_sort_dir' => 'asc' ),
+          array( 'label' => 'Location',   'slug' => 'location',   'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Remarks',    'slug' => 'remarks',    'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Infosource', 'slug' => 'infosource', 'search' => 'none',   'display' => 'member' ),
+          array( 'label' => 'Designator', 'slug' => 'designator', 'search' => 'none',   'display' => 'member' ),
         ),
         'database_version' => '0.1',
       ),
@@ -173,10 +191,7 @@ class HRHS_Plugin {
       $this->instantiate_admin_pages();
     }
     $this->instantiate_post_types();
-    // $this->instantiate_search_page();
-    // FIXME: Should this function live in an Elementor specific file?
     add_action( 'plugins_loaded', array( $this, 'register_elementor_widgets' ) );
-    // FIXME: These functions should only be loaded when the hrhs_login elementor widget is loaded
     add_action( 'wp_authenticate', array( $this, 'hrhs_handle_empty_login' ), 1, 2 );
     add_action( 'wp_login_failed', array( $this, 'hrhs_handle_failed_login' ) );
 
@@ -253,7 +268,6 @@ class HRHS_Plugin {
     }
 
     // Once we get here, We have passed all validation checks so we can safely include our widgets.
-    // hrhs_debug( 'HRHS_Elementor_Widgets has met all of the requirements, loading widgets' );
     require_once HRHS_PLUGIN_PATH . 'elementor/class-hrhs-elementor-widgets.php';
   }
 
@@ -266,7 +280,6 @@ class HRHS_Plugin {
   // Elegantly handle member logins with empty credentials from non-admin pages
   // FIXME: These functions should only be loaded when the hrhs_login elementor widget is loaded
   public function hrhs_handle_empty_login( $username, $pwd ) {
-    // hrhs_debug( 'Inside hrhs_handle_empty_login()' );
     $referer = $this->hrhs_get_referer();
     // If there's a valid referer and it is not the default WP login or admin page
     if ( ! empty( $referer ) && ! strstr( $referer, 'wp-login' ) && ! strstr( $referer, 'wp-admin' ) ) {
@@ -284,7 +297,6 @@ class HRHS_Plugin {
   // Elegantly handle failed member logins from non-admin pages
   // FIXME: These functions should only be loaded when the hrhs_login elementor widget is loaded
   public function hrhs_handle_failed_login( $username ) {
-    // hrhs_debug( 'Inside hrhs_handle_failed_login()' );
     $referer = $this->hrhs_get_referer();
     // If there's a valid referer and it is not the default WP login or admin page
     if ( ! empty( $referer ) && ! strstr( $referer, 'wp-login' ) && ! strstr( $referer, 'wp-admin' ) ) {
@@ -324,7 +336,6 @@ class HRHS_Plugin {
     // Create the default HRHS member user (if necessary)
     // NOTE: The email MUST be unique to all other users
     if ( ! get_user_by( 'login', 'HRHS-MEMBER' ) ) {
-      // hrhs_debug( 'User HRHS-MEMBER does not exist, creating...' );
       wp_insert_user( array(
         'user_login' => 'HRHS-MEMBER',
         'user_pass' => 'STORIES',
@@ -335,8 +346,6 @@ class HRHS_Plugin {
         'role' => 'subscriber',
         'show_admin_bar_front' => true
       ) );
-    } else {
-      // hrhs_debug( 'User HRHS-MEMBER already exists, do nothing' );
     }
 
     // Install the HRHS custom database tables
@@ -364,13 +373,4 @@ class HRHS_Plugin {
     flush_rewrite_rules();
   }
 
-  /* ******************
-   * Accessor functions
-   * ******************/
-
-  // Get the search post types/fields
-  // TODO: Commenting out until I find a use for it
-  // public function get_search_types_fields() {
-  //   return $this->search_page->get_search_types_fields();
-  // }
 }

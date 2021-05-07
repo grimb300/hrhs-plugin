@@ -11,7 +11,7 @@ use HRHSPlugin\HRHS_Options;
 use HRHSPlugin\HRHS_Simple_Search;
 use function HRHSPlugin\hrhs_debug;
 
-final class HRHS_Search_Widget extends Widget_Base {
+final class HRHS_Search_Form_Widget extends Widget_Base {
 
   // Class constructor
   public function __construct( $data = array(), $args = null ) {
@@ -22,14 +22,14 @@ final class HRHS_Search_Widget extends Widget_Base {
     wp_register_style( 'hrhs_search_styles_css', HRHS_PLUGIN_URL . 'css/hrhs-search-styles.css', array(), $hrhs_search_styles_css_ver );
   }
 
-  // Retreive the widget name
+  // Retrieve the widget name
   public function get_name() {
-    return 'hrhs_search_widget';
+    return 'hrhs_search_form_widget';
   }
 
-  // Retreive the widget title
+  // Retrieve the widget title
   public function get_title() {
-    return 'HRHS Search';
+    return 'HRHS Search Form';
   }
 
   // Retreive the widget icon
@@ -49,19 +49,17 @@ final class HRHS_Search_Widget extends Widget_Base {
 
   // Enqueue styles
   public function get_style_depends() {
-    return array( 'hrhs_search_styles_css' );
+    return array( 'hrhs_search_styles_css', 'dashicons' );
   }
 
   // Register the widget controls
   // Adds different input fields to allow the user to change and customize the widget settings
   protected function _register_controls() {
-    // hrhs_debug( 'Inside HRHS_Search_Widget::_register_controls()');
 
     // Get the various CPTs that could be searched out of options
     require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-options.php';
     $options_obj = new HRHS_Options();
     $my_options = $options_obj->get();
-    // hrhs_debug( $my_options );
 
     // Build the search_type select array
     $search_types_select = array_map( 
@@ -109,6 +107,16 @@ final class HRHS_Search_Widget extends Widget_Base {
     );
 
     $this->add_control(
+      'num_results',
+      array(
+        'label' => 'Default Search Results Per Page',
+        'type' => Controls_Manager::SELECT,
+        'options' => array( '10, 25', '50', 'all' ),
+        'default' => '50'
+      )
+    );
+
+    $this->add_control(
     'button_text',
     array(
       'label' => 'Search Button Text',
@@ -142,87 +150,104 @@ final class HRHS_Search_Widget extends Widget_Base {
     $this->add_inline_editing_attributes( 'login_msg', 'basic' );
 
     // Get the search term(s) (if present)
-    $needle =
-      empty( $_REQUEST[ 'hrhs-search' ][ 'needle' ] )
-      ? null
-      : $_REQUEST[ 'hrhs-search' ][ 'needle' ];
-
+    // FIXME: Tried using "s" as the query parameter, but it got picked up by core WP
+    $needle = empty( $_GET[ 'search' ] ) ? null : $_GET[ 'search' ];
+    
     // The haystack will always be the widget's search_type despite the request parameter "haystacks",
     // keeping it around for possible backward compatability with the old "search" class
     $haystack = $settings[ 'search_type' ];
-
+    
     // Instantiate the "simple_search" object for this needle/haystack
-    $search_obj = new HRHS_Simple_Search( array(
-      'needle' => $needle,
-      'haystack' => $haystack
-    ) );
+    $search_obj = new HRHS_Simple_Search( array( 'haystack' => $haystack ) );  
+      
+    // Get the searchable fields for this haystack
+    $possible_searchable_fields = $search_obj->get_all_search_fields();
+    $user_searchable_fields = $search_obj->get_search_fields();
+    $not_searchable = empty( $user_searchable_fields );
 
-    // Get the searchable status for this haystack
-    $haystack_not_searchable = empty( $search_obj->get_search_fields() );
+    // Get the selected search fields (if present)
+    $selected_fields = array_map(
+      function ( $field ) { return $field[ 'slug' ]; },
+      $search_obj->get_default_search()
+    );
+    if ( ! empty ( $_GET[ 'search_fields' ] ) ) {
+      $selected_fields = $_GET[ 'search_fields' ];
+    }
 
     ?>
-    <div class="hrhs_search_wrap">
+    <div class="hrhs_search_form_wrap">
       <h4 <?php echo $this->get_render_attribute_string( 'title'); ?>><?php echo $settings[ 'title' ]; ?></h4>
       <?php
-      if ( $haystack_not_searchable ) {
+      if ( $not_searchable ) {
         // If the haystack isn't searchable, display the "login required" message
         ?>
-        <p <?php echo $this->get_render_attribute_string( 'login_msg'); ?>><?php echo $settings[ 'login_msg' ]; ?></p>
+        <p <?php echo $this->get_render_attribute_string( 'login_msg' ); ?>><?php echo $settings[ 'login_msg' ]; ?></p>
         <?php
       } else {
         // Else, display the search form
         ?>
-        <p <?php echo $this->get_render_attribute_string( 'description'); ?>><?php echo $settings[ 'description' ]; ?></p>
-        <form id="hrhs-search" action="" method="post">
-          <input type="hidden" name="hrhs-search[haystacks][<?php echo $settings[ 'search_type' ]; ?>]" value="on">
-          <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="<?php echo $needle; ?>">
-          <input type="submit" class="search-submit" value="<?php echo $settings[ 'button_text' ]; ?>">
+        <p <?php echo $this->get_render_attribute_string( 'description' ); ?>><?php echo $settings[ 'description' ]; ?></p>
+        <form id="hrhs-search" action="" method="get">
+          <input type="hidden" name="search_type" value="<?php echo $settings[ 'search_type' ]; ?>">
+          <?php // FIXME: Tried using "s" as the query parameter, but it got picked up by core WP ?>
+          <div class="hrhs-form-layout-wrap">
+            <div class="hrhs-input-wrap">
+              <input type="text" name="search" id="hrhs-search-needle" value="<?php echo $needle; ?>">
+              <input type="submit" class="search-submit" value="<?php echo $settings[ 'button_text' ]; ?>">
+            </div>
+            <div class="hrhs-option-wrap">
+              <div class="hrhs-search-results-per-page-wrap">
+                <h5>Results Per Page</h5>
+                <label class="screen-reader-text" for="hrhs-search-results-per-page">Results Per Page</label>
+                <select name="num_results" id="hrhs-search-results-per-page">
+                  <?php
+                  // FIXME: Need to make this a class property
+                  $num_results_options = array( '10', '25', '50', 'all' );
+                  foreach ( $num_results_options as $option ) {
+                    $num_results = empty( $_GET[ 'num_results' ] ) ? $settings[ 'num_results' ] : $_GET[ 'num_results' ];
+                    $selected = $option === $num_results ? ' selected' : '';
+                    ?>
+                    <option value="<?php echo $option; ?>"<?php echo $selected; ?>><?php echo $option; ?></option>
+                    <?php
+                  }
+                  ?>
+                </select>
+              </div>
+              <?php
+              // If there is more than one searchable field, add checkboxes for the fields to search
+              if ( count( $possible_searchable_fields ) > 1 ) {
+                ?>
+                <div class="hrhs-search-fields-wrap">
+                  <h5>Search Fields</h5>
+                  <div class="hrhs-search-fields" id="hrhs-search-fields">
+                    <?php
+                    foreach ( $possible_searchable_fields as $field ) {
+                      $slug = $field[ 'slug' ];
+                      $label = $field[ 'label' ];
+                      $checked = in_array( $slug, $selected_fields ) ? ' checked' : '';
+                      $disabled = $field[ 'search' ] === 'member' && ! is_user_logged_in() ? ' disabled' : '';
+                      // NOTE: Using "search_fields[]" for the checkboxes works for some frameworks (PHP being one)
+                      ?>
+                      <label for="hrhs-search-field-<?php echo $slug; ?>">
+                        <input type="checkbox" name="search_fields[]" id="hrhs-search-field-<?php echo $slug; ?>" value="<?php echo $slug; ?>"<?php echo $checked; ?><?php echo $disabled; ?>>
+                        <span> <?php echo $label; ?><?php echo empty( $disabled ) ? '' : ' (members only)'; ?></span>
+                      </label>
+                      <?php
+                    }
+                    ?>
+                  </div>
+                </div>
+                <?php
+              }
+              ?>
+            </div>
+          </div>
         </form>
         <?php
       }
       ?>
     </div>
     <?php
-    // If a needle was provided and the haystack is searchable, display the search results
-    if ( null !== $needle && ! $haystack_not_searchable ) {
-      // FIXME: There's an inconsistency between what is returned between the CPT and custom table flows.
-      //        Move the complexity into hrhs_simple_search so the consumer doesn't need to know what is going on.
-      $search_results = $search_obj->get_search_results( array( 'needle' => $needle ) );
-      // hrhs_debug( 'get_search_results returned:' );
-      // hrhs_debug( $search_results );
-      $num_results = count( $search_results );
-      ?>
-      <div class="hrhs_results_wrap">
-        <h4>Your search for "<?php echo $needle; ?>" generated <?php echo $num_results; ?> results</h4>
-        <?php
-        // If any results were returned, display them here
-        if ( $num_results > 0 ) {
-          $display_fields = $search_obj->get_display_fields();
-          if ( ! empty( $display_fields ) ) {
-            ?>
-            <table>
-              <tbody>
-                <tr>
-                  <?php foreach ( $display_fields as $field ) { ?>
-                  <th scope="col"><?php echo $field[ 'label' ]; ?></th>
-                  <?php } ?>
-                </tr>
-                <?php foreach ( $search_results as $result ) { ?>
-                <tr>
-                  <?php foreach( $display_fields as $field ) { ?>
-                  <td><?php echo $result[ $field[ 'slug' ] ]; ?></td>
-                  <?php } // foreach $display_fields ?>
-                </tr>
-                <?php } // foreach $search_results ?>
-              </tbody>
-            </table>
-            <?php
-          }
-        }
-        ?>
-      </div>
-      <?php
-    }
   }
 
   // Render the widget output in the editor
@@ -234,7 +259,7 @@ final class HRHS_Search_Widget extends Widget_Base {
     view.addInlineEditingAttributes( 'title', 'none' );
     view.addInlineEditingAttributes( 'description', 'basic' );
     #>
-    <div class="hrhs_search_wrap">
+    <div class="hrhs_search_form_wrap">
       <h4 {{{ view.getRenderAttributeString( 'title') }}}>{{{ settings.title }}}</h4>
       <p {{{ view.getRenderAttributeString( 'description') }}}>{{{ settings.description }}}</p>
       <form id="hrhs-search" action="" method="post">
@@ -242,37 +267,6 @@ final class HRHS_Search_Widget extends Widget_Base {
         <input type="text" name="hrhs-search[needle]" id="hrhs-search-needle" value="">
         <input type="submit" class="search-submit" value="{{{ settings.button_text }}}">
       </form>
-    </div>
-    <div class="hrhs_results_wrap">
-      <h4>Your search for "test" generated 3 results</h4>
-      <table>
-        <tbody>
-          <tr>
-            <th scope="col">Heading 1</th>
-            <th scope="col">Heading 2</th>
-            <th scope="col">Heading 3</th>
-            <th scope="col">Heading 4</th>
-          </tr>
-          <tr>
-            <td>Record 1 - Data 1</td>
-            <td>Record 1 - Data 2</td>
-            <td>Record 1 - Data 3</td>
-            <td>Record 1 - Data 4</td>
-          </tr>
-          <tr>
-            <td>Record 2 - Data 1</td>
-            <td>Record 2 - Data 2</td>
-            <td>Record 2 - Data 3</td>
-            <td>Record 2 - Data 4</td>
-          </tr>
-          <tr>
-            <td>Record 3 - Data 1</td>
-            <td>Record 3 - Data 2</td>
-            <td>Record 3 - Data 3</td>
-            <td>Record 3 - Data 4</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
    <?php
   }

@@ -146,7 +146,7 @@ class HRHS_Post_Type {
           $input_value = array_key_exists( 'default', $field ) && ! is_null( $field[ 'default' ] ) ? $field[ 'default' ] : '';
           if ( array_key_exists( $field[ 'slug' ], $all_post_meta ) ) {
             // Because the post_meta fields are being retrieved at once,
-             // each field is an array and the value required is at index 0
+            // each field is an array and the value required is at index 0
             $input_value = $all_post_meta[ $field[ 'slug' ] ][ 0 ];
           }
           ?>
@@ -196,6 +196,7 @@ class HRHS_Post_Type {
     }
   }
 
+  // FIXME: Remove if a single CPT will never be displayed
   public function display_hrhs_post_type_content( $content ) {
     global $post;
 

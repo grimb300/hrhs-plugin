@@ -36,7 +36,8 @@ final class HRHS_Elementor_Widgets {
   // Include individual widget files
   private function include_widget_files() {
     require_once HRHS_PLUGIN_PATH . 'elementor/class-hrhs-login-widget.php';
-    require_once HRHS_PLUGIN_PATH . 'elementor/class-hrhs-search-widget.php';
+    require_once HRHS_PLUGIN_PATH . 'elementor/class-hrhs-search-form-widget.php';
+    require_once HRHS_PLUGIN_PATH . 'elementor/class-hrhs-search-results-widget.php';
   }
 
   // Register the new Elementor widgets
@@ -48,16 +49,15 @@ final class HRHS_Elementor_Widgets {
 
     // Register the widget classes
     \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new Widgets\HRHS_Login_Widget() );
-    \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new Widgets\HRHS_Search_Widget() );
+    \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new Widgets\HRHS_Search_Form_Widget() );
+    \Elementor\Plugin::instance()->widgets_manager->register_widget_type( new Widgets\HRHS_Search_Results_Widget() );
   }
 
   public function __construct() {
-    // hrhs_debug( 'Inside HRHS_Elementor_Widgets::__construct()' );
     add_action( 'elementor/init', array( $this, 'init' ) );
   }
   
   public function init() {
-    // hrhs_debug( 'Inside HRHS_Elementor_Widgets::init()' );
     // Register the widgets
     add_action( 'elementor/widgets/widgets_registered', array( $this, 'register_widgets' ) );
   }
