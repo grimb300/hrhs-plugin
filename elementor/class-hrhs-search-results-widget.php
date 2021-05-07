@@ -308,21 +308,11 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
                     <th scope="col"><?php echo $column_heading; ?></th>
                   <?php } ?>
                 </tr>
-                <?php foreach ( $search_results[ 'results' ] as $post_id ) { ?>
+                <?php foreach ( $search_results[ 'results' ] as $result ) { ?>
                   <tr>
-                    <?php
-                    $result_meta_data = get_post_meta( $post_id );
-                    foreach( $display_fields as $field ) {
-                      $field_meta_name = $field[ 'slug' ];
-                      $field_meta_data =
-                        array_key_exists( $field_meta_name, $result_meta_data )
-                        ? $result_meta_data[ $field_meta_name ][0]
-                        : '';
-                      ?>
-                      <td><?php echo $field_meta_data; ?></td>
-                      <?php
-                    } // foreach $display_fields
-                    ?>
+                    <?php foreach( $display_fields as $field ) { ?>
+                    <td><?php echo $result[ $field[ 'slug' ] ]; ?></td>
+                    <?php } // foreach $display_fields ?>
                   </tr>
                 <?php } // foreach $search_results ?>
               </tbody>

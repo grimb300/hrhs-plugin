@@ -35,13 +35,15 @@ class HRHS_Plugin {
           array(
             'label' => 'Surname',      'slug' => 'surname',
             'search' => 'all',         'display' => 'all',
+            'default_search' => true, 'default_sort' => 1, 'default_sort_dir' => 'asc',
             'sql_data_type' => 'varchar(75)', // Data type from legacy MySQL database
-          ), // Order first
+          ),
           array(
             'label' => 'Given Name',   'slug' => 'givenname',
             'search' => 'member',      'display' => 'all',
+            'default_sort' => 2, 'default_sort_dir' => 'asc',
             'sql_data_type' => 'varchar(75)', // Data type from legacy MySQL database
-          ), // Order second
+          ),
           array(
             'label' => 'Birth',        'slug' => 'birth',
             'search' => 'none',        'display' => 'member',
@@ -74,14 +76,6 @@ class HRHS_Plugin {
             'search' => 'none',        'display' => 'none',
             'sql_data_type' => 'int(9)', // Data type from legacy MySQL database
             ),
-          array( 'label' => 'Surname',     'slug' => 'surname',   'search' => 'all',    'display' => 'all',   'default_search' => true, 'default_sort' => 1, 'default_sort_dir' => 'asc' ),
-          array( 'label' => 'Given Name',  'slug' => 'givenname', 'search' => 'member', 'display' => 'all',                             'default_sort' => 2, 'default_sort_dir' => 'asc' ),
-          array( 'label' => 'Birth',       'slug' => 'birth',     'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Death',       'slug' => 'death',     'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Marriage',    'slug' => 'marriage',  'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Remarks',     'slug' => 'remarks',   'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Information', 'slug' => 'infoname',  'search' => 'none',   'display' => 'all' ),
-          array( 'label' => 'ID',          'slug' => 'ID',        'search' => 'none',   'display' => 'none' ),
         ),
         'database_version' => '0.1',
       ),
@@ -109,12 +103,9 @@ class HRHS_Plugin {
           array(
             'label' => 'Sort Order', 'slug' => 'sort',
             'search' => 'none',   'display' => 'none',
+            'default_sort' => 1, 'default_sort_dir' => 'asc',
             'sql_data_type' => 'varchar(6)', // Data type from legacy MySQL database
-          ), // Order first,
-          array( 'label' => 'Year',       'slug' => 'year',  'search' => 'member', 'display' => 'member' ),
-          array( 'label' => 'Newspaper',  'slug' => 'news',  'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Pages',      'slug' => 'pages', 'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Sort Order', 'slug' => 'sort',  'search' => 'none',   'display' => 'none',  'default_sort' => 1, 'default_sort_dir' => 'asc' ),
+          ),
         ),
         'database_version' => '0.1',
       ),
@@ -127,13 +118,15 @@ class HRHS_Plugin {
           array(
             'label' => 'Placename',  'slug' => 'placename',
             'search' => 'member', 'display' => 'member',
+            'default_sort' => 1, 'default_sort_dir' => 'asc',
             'sql_data_type' => 'varchar(50)', // Data type from legacy MySQL database
-          ), // Order first
+          ),
           array(
             'label' => 'Othername',  'slug' => 'othername',
             'search' => 'none',   'display' => 'member',
+            'default_sort' => 2, 'default_sort_dir' => 'asc',
             'sql_data_type' => 'varchar(100)', // Data type from legacy MySQL database
-          ), // Order second
+          ),
           array(
             'label' => 'Location',   'slug' => 'location',
             'search' => 'none',   'display' => 'member',
@@ -154,12 +147,6 @@ class HRHS_Plugin {
             'search' => 'none',   'display' => 'member',
             'sql_data_type' => 'varchar(12)', // Data type from legacy MySQL database
           ),
-          array( 'label' => 'Placename',  'slug' => 'placename',  'search' => 'member', 'display' => 'member', 'default_sort' => 1, 'default_sort_dir' => 'asc' ),
-          array( 'label' => 'Othername',  'slug' => 'othername',  'search' => 'none',   'display' => 'member', 'default_sort' => 2, 'default_sort_dir' => 'asc' ),
-          array( 'label' => 'Location',   'slug' => 'location',   'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Remarks',    'slug' => 'remarks',    'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Infosource', 'slug' => 'infosource', 'search' => 'none',   'display' => 'member' ),
-          array( 'label' => 'Designator', 'slug' => 'designator', 'search' => 'none',   'display' => 'member' ),
         ),
         'database_version' => '0.1',
       ),

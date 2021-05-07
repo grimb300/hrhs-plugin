@@ -14,8 +14,8 @@ class HRHS_Simple_Search {
   // or custom database tables ( using $wpdb->get_results( <SQL SELECT statement> ) )
   // FIXME: I could allow this to be configured by the constructor if the plugin needs to mix the types of data
   //        For now I'm keeping it static for all searches
-  // private $custom_post_types = true;  // Search CPTs
-  private $custom_post_types = false; // Search custom database tables
+  private $custom_post_types = true;  // Search CPTs
+  // private $custom_post_types = false; // Search custom database tables
 
   // These properties are filled in by the constructor
   private $needle = null;
@@ -96,49 +96,6 @@ class HRHS_Simple_Search {
     // TODO: Do I need to sanitize further since the needle is used in a MySQL query?
     $needle = strtolower( filter_var( trim( $params[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
 
-    // Branch here, depending on if the search should be done with custom post types or custom database tables
-    if ( $this->custom_post_types ) {
-      // hrhs_debug( 'HRHS_Simple_Search::get_search_results - Searching custom post types' );
-
-      // Build a query for this haystack
-      $meta_query = array(
-        'relation' => 'OR', // Needle must match at least one field
-      );
-      foreach( $this->searchable_fields as $field ) {
-        $meta_query[ $field[ 'slug' ] . '_clause' ] = array(
-          'key' => $field[ 'slug' ],
-          'value' => $needle,   // NOTE: Using LIKE will automagically add
-          'compare' => 'LIKE',  //       SQL wildcards (%) around the value
-        );
-      }
-      $get_posts_query = array(
-        'numberposts' => -1, // Return all matches
-        'fields' => 'ids',   // Return an array of post IDs
-        'post_type' => $this->haystack_def[ 'slug' ], // Search only the current haystack's post type
-        'post_status' => 'publish', // Return only published posts
-        'meta_query' => $meta_query,
-      );
-  
-      // hrhs_debug( 'Query:' );
-      // hrhs_debug( $get_posts_query );
-
-      // Get the matching posts
-      $matching_post_ids = get_posts( $get_posts_query );
-
-      // Turn the array of post IDs into an array of arrays containing the postmeta data for each post
-      $results = array_map(
-        function ( $post_id ) {
-          $result[ 'id' ] = $post_id; // Using lower case 'id' here to match what is in the custom table
-
-          // Add the meta data to the result
-          $meta_data = get_post_meta( $post_id );
-          foreach ( $this->all_fields as $field ) {
-            $field_name = $field[ 'slug' ];
-            $result[ $field_name ] = array_key_exists( $field_name, $meta_data ) ? $meta_data[ $field_name ][0] : '';
-          }
-          return $result;
-        },
-        $matching_post_ids
     // Get the fields
     // Default is $this->default_search, but can be changed by $params[ 'fields' ]
     $params_fields = empty( $params[ 'fields' ] ) ? array() : $params[ 'fields' ];
@@ -168,48 +125,129 @@ class HRHS_Simple_Search {
     // Done getting the params
     //////////////////////////
 
-    // Create a meta query for the necessary fields
-    // This complex-ish meta query will look like:
-    //   results = ( ( field1 = needle1 ) OR ( field2 = needle1 ) OR ( field1 = needle2 ) OR ( field2 = needle2 ) OR ... )
-    //             AND field1 exists AND field2 exists AND ...
-    // The fieldx exists terms are used only for sorting purposes
-    //
-    // SQL code break -- The generated SQL query looks like:
-    //   SELECT SQL_CALC_FOUND_ROWS  wp_posts.ID FROM wp_posts
-    //   INNER JOIN wp_postmeta ON ( wp_posts.ID = wp_postmeta.post_id )
-    //   INNER JOIN wp_postmeta AS mt1 ON ( wp_posts.ID = mt1.post_id )
-    //   INNER JOIN wp_postmeta AS mt2 ON ( wp_posts.ID = mt2.post_id )
-    //   WHERE 1=1  AND ( 
-    //     ( 
-    //       ( wp_postmeta.meta_key = 'surname' AND wp_postmeta.meta_value LIKE '%a%' ) 
-    //       OR 
-    //       ( wp_postmeta.meta_key = 'givenname' AND wp_postmeta.meta_value LIKE '%a%' )
-    //     ) 
-    //     AND 
-    //     mt1.meta_key = 'surname' 
-    //     AND 
-    //     mt2.meta_key = 'givenname'
-    //   ) AND wp_posts.post_type = 'name_entry' AND ((wp_posts.post_status = 'publish'))
-    //   GROUP BY wp_posts.ID
-    //   ORDER BY CAST(mt1.meta_value AS CHAR) ASC, CAST(mt2.meta_value AS CHAR) ASC
-    //   LIMIT 0, 50
-    // END SQL code break
-    $meta_query = array(
-      'relation' => 'AND', // The search_clause will be ANDed with any sorting clauses (shouldn't affect the results)
-      'search_clause' => array(
-        'relation' => 'OR', // The individual searches are ORed
-      )
-    );
-    foreach( $search_fields as $field ) {
-      $search_clause = $field[ 'slug' ] . '_search_clause';
-      $meta_query[ 'search_clause' ][ $search_clause ] = array(
-        'key' => $field[ 'slug' ],
-        'value' => $needle,   // NOTE: Using LIKE will automagically add
-        'compare' => 'LIKE',  //       SQL wildcards (%) around the value
+    // Branch here, depending on if the search should be done with custom post types or custom database tables
+    if ( $this->custom_post_types ) {
+
+      // Create a meta query for the necessary fields
+      // This complex-ish meta query will look like:
+      //   results = ( ( field1 = needle1 ) OR ( field2 = needle1 ) OR ( field1 = needle2 ) OR ( field2 = needle2 ) OR ... )
+      //             AND field1 exists AND field2 exists AND ...
+      // The fieldx exists terms are used only for sorting purposes
+      //
+      // SQL code break -- The generated SQL query looks like:
+      //   SELECT SQL_CALC_FOUND_ROWS  wp_posts.ID FROM wp_posts
+      //   INNER JOIN wp_postmeta ON ( wp_posts.ID = wp_postmeta.post_id )
+      //   INNER JOIN wp_postmeta AS mt1 ON ( wp_posts.ID = mt1.post_id )
+      //   INNER JOIN wp_postmeta AS mt2 ON ( wp_posts.ID = mt2.post_id )
+      //   WHERE 1=1  AND ( 
+      //     ( 
+      //       ( wp_postmeta.meta_key = 'surname' AND wp_postmeta.meta_value LIKE '%a%' ) 
+      //       OR 
+      //       ( wp_postmeta.meta_key = 'givenname' AND wp_postmeta.meta_value LIKE '%a%' )
+      //     ) 
+      //     AND 
+      //     mt1.meta_key = 'surname' 
+      //     AND 
+      //     mt2.meta_key = 'givenname'
+      //   ) AND wp_posts.post_type = 'name_entry' AND ((wp_posts.post_status = 'publish'))
+      //   GROUP BY wp_posts.ID
+      //   ORDER BY CAST(mt1.meta_value AS CHAR) ASC, CAST(mt2.meta_value AS CHAR) ASC
+      //   LIMIT 0, 50
+      // END SQL code break
+      $meta_query = array(
+        'relation' => 'AND', // The search_clause will be ANDed with any sorting clauses (shouldn't affect the results)
+        'search_clause' => array(
+          'relation' => 'OR', // The individual searches are ORed
+        )
+      );
+      foreach( $search_fields as $field ) {
+        $search_clause = $field[ 'slug' ] . '_search_clause';
+        $meta_query[ 'search_clause' ][ $search_clause ] = array(
+          'key' => $field[ 'slug' ],
+          'value' => $needle,   // NOTE: Using LIKE will automagically add
+          'compare' => 'LIKE',  //       SQL wildcards (%) around the value
+        );
+      }
+      // Add sort ordering
+      $orderby = array();
+      foreach( $sort_order as $field ) {
+        // If there isn't already a search clause for this field create a simple exists clause
+        // FIXME: This seems dangerous. It won't display records where the meta value doesn't exist.
+        //        Not sure if it's possible to guarantee add records have all meta values right now.
+        $sort_clause = $field[ 'slug' ] . '_sort_clause';
+        // if ( ! array_key_exists( $sort_clause, $meta_query ) ) {
+          $meta_query[ $sort_clause ] = array(
+            'key' => $field[ 'slug' ],
+            'compare' => 'EXISTS',
+          );
+        // }
+        $orderby[ $sort_clause ] = strtoupper( $field[ 'dir' ] );
+      }
+
+      // Build the query for this haystack
+      $get_posts_query = array(
+        'posts_per_page' => $num_results,
+        'paged' => $page_num,
+        'fields' => 'ids',   // Return an array of post IDs
+        'post_type' => $this->haystack_def[ 'slug' ], // Search only the current haystack's post type
+        'post_status' => 'publish', // Return only published posts
+        'meta_query' => $meta_query,
+        'orderby' => $orderby,
       );
   
+      /* ************************************************************************************************
+       * Quick MySQL code break
+       * After playing around in phpMyAdmin, I came up with this direct MySQL query which does what I want
+       * This will be useful when merging back into the main branch and working with custom tables
+       * ************************************************************************************************/
+
+      // $sql = "SELECT post.ID AS ID, sur.meta_value AS Surname, given.meta_value AS GivenName FROM `wp_posts` AS post
+      // LEFT JOIN `wp_postmeta` AS given ON post.ID = given.post_id
+      // LEFT JOIN `wp_postmeta` AS sur ON post.ID = sur.post_id
+      // WHERE post.post_type = 'name_entry'
+      // AND given.meta_key = 'givenname'
+      // AND sur.meta_key = 'surname'
+      // AND (given.meta_value LIKE '%a%' AND sur.meta_value LIKE '%a%') ORDER BY sur.meta_value ASC, given.meta_value ASC;";
+
+      /* ************************************************************************************************
+      * END MySQL code break
+      * ************************************************************************************************/
+
+      // hrhs_debug( 'Query:' );
+      // hrhs_debug( $get_posts_query );
+
+      // NOTE: Have to put a backslash in front of WP_Query to find it in the global namespace
+      $my_query = new \WP_Query( $get_posts_query );
+
+      // Turn the array of post IDs into an array of arrays containing the postmeta data for each post
+      $results = array_map(
+        function ( $post_id ) {
+          $result[ 'id' ] = $post_id; // Using lower case 'id' here to match what is in the custom table
+
+          // Add the meta data to the result
+          $meta_data = get_post_meta( $post_id );
+          foreach ( $this->all_fields as $field ) {
+            $field_name = $field[ 'slug' ];
+            $result[ $field_name ] = array_key_exists( $field_name, $meta_data ) ? $meta_data[ $field_name ][0] : '';
+          }
+          return $result;
+        },
+        $my_query->posts
+      );
+
       // Return the search results
-      return $results;
+      // FIXME: When merging back into main...
+      //        MySQL has a function FOUND_ROWS() which will return
+      //        the total number of rows found during the last query
+      //        Therefore it should look something like:
+      //        SELECT * FROM <custom_table>
+      //          WHERE <filters>
+      //          LIMIT <num_per_page>; <== returns the paged results
+      //        SELECT FOUND_ROWS();    <== returns the total number of found rows
+      return array(
+        'results' => $results,
+        'found_results' => $my_query->found_posts
+      );
 
     } else {
       // hrhs_debug( 'HRHS_Simple_Search::get_search_results - Searching custom database tables' );
@@ -222,51 +260,7 @@ class HRHS_Simple_Search {
       ) );
       return $results;
     }
-    // Add sort ordering
-    $orderby = array();
-    foreach( $sort_order as $field ) {
-      // If there isn't already a search clause for this field create a simple exists clause
-      // FIXME: This seems dangerous. It won't display records where the meta value doesn't exist.
-      //        Not sure if it's possible to guarantee add records have all meta values right now.
-      $sort_clause = $field[ 'slug' ] . '_sort_clause';
-      // if ( ! array_key_exists( $sort_clause, $meta_query ) ) {
-        $meta_query[ $sort_clause ] = array(
-          'key' => $field[ 'slug' ],
-          'compare' => 'EXISTS',
-        );
-      // }
-      $orderby[ $sort_clause ] = strtoupper( $field[ 'dir' ] );
-    }
-    // hrhs_debug( 'Meta query:' );
-    // hrhs_debug( $meta_query );
-    // Build the query for this haystack
-    $get_posts_query = array(
-      'posts_per_page' => $num_results,
-      'paged' => $page_num,
-      'fields' => 'ids',   // Return an array of post IDs
-      'post_type' => $this->haystack_def[ 'slug' ], // Search only the current haystack's post type
-      'post_status' => 'publish', // Return only published posts
-      'meta_query' => $meta_query,
-      'orderby' => $orderby,
-    );
 
-    /* ************************************************************************************************
-     * Quick MySQL code break
-     * After playing around in phpMyAdmin, I came up with this direct MySQL query which does what I want
-     * This will be useful when merging back into the main branch and working with custom tables
-     * ************************************************************************************************/
-
-    // $sql = "SELECT post.ID AS ID, sur.meta_value AS Surname, given.meta_value AS GivenName FROM `wp_posts` AS post
-    // LEFT JOIN `wp_postmeta` AS given ON post.ID = given.post_id
-    // LEFT JOIN `wp_postmeta` AS sur ON post.ID = sur.post_id
-    // WHERE post.post_type = 'name_entry'
-    // AND given.meta_key = 'givenname'
-    // AND sur.meta_key = 'surname'
-    // AND (given.meta_value LIKE '%a%' AND sur.meta_value LIKE '%a%') ORDER BY sur.meta_value ASC, given.meta_value ASC;";
-
-    /* ************************************************************************************************
-     * END MySQL code break
-     * ************************************************************************************************/
 
     // NOTE: Have to put a backslash in front of WP_Query to find it in the global namespace
     $my_query = new \WP_Query( $get_posts_query );
