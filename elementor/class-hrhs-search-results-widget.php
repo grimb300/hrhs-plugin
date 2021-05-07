@@ -248,6 +248,8 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
 
       ?>
       <div class="hrhs_search_results_wrap">
+        <!-- <h4>MySQL query:</h4>
+        <code><?php //echo $search_results[ 'MySQL_query' ]; ?></code> -->
         <h4>Your search for "<?php echo $needle; ?>" generated <?php echo $total_results; ?> results</h4>
         <?php
         // If any results were returned, display them here

@@ -80,6 +80,34 @@ class HRHS_Simple_Search {
     );
     $this->default_sort = $default_sort;
 
+    // Add filter to posts_where that adds wildcards to the needle being searched
+    add_filter( 'posts_where', array( $this, 'add_wildcards_to_needle' ), 10, 2 );
+
+  }
+
+  public function add_wildcards_to_needle ( $where, $wp_query_obj ) {
+    // Run a callback on any LIKE statement that contains spaces
+    $new_where = preg_replace_callback(
+      '/LIKE \'({\w+})((\w+ )+\w+){\w+}\'/',
+      function ( $matches ) {
+        // The array passed to the callback follows a similar form to the preg_replace() references:
+        //   $matches[0] --> The entire string being replaced
+        //   $matches[1] --> 1st reference
+        //   $matches[2] --> 2nd reference
+        //   $matches[3] --> 3rd reference, and so on
+        $wildcard = $matches[1];
+        $search_string = $matches[2];
+
+        // Replace the spaces in the search terms with wildcards
+        $modified_search_string = preg_replace( '/\s+/', $wildcard, $search_string );
+        hrhs_debug( 'Modified search string: ' . $modified_search_string );
+
+        // Return the substituted search terms in the LIKE statement
+        return sprintf( 'LIKE \'%s%s%s\'', $wildcard, $modified_search_string, $wildcard );
+      },
+      $where
+    );
+    return $new_where;
   }
 
   public function get_search_results( $params = array() ) {
@@ -95,6 +123,15 @@ class HRHS_Simple_Search {
     // Get the needle
     // TODO: Do I need to sanitize further since the needle is used in a MySQL query?
     $needle = strtolower( filter_var( trim( $params[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
+
+    // Check to see if multiple search terms were given (space delimited for now)
+    $many_needles = explode( ' ', $needle );
+    $has_many_needles = count( $many_needles ) > 1 ? true : false;
+
+    // if ( $has_many_needles ) {
+    //   hrhs_debug( sprintf( 'Needle (%s) has many needles:', $needle ) );
+    //   hrhs_debug( $many_needles );
+    // }
 
     // Get the fields
     // Default is $this->default_search, but can be changed by $params[ 'fields' ]
@@ -164,7 +201,8 @@ class HRHS_Simple_Search {
         $search_clause = $field[ 'slug' ] . '_search_clause';
         $meta_query[ 'search_clause' ][ $search_clause ] = array(
           'key' => $field[ 'slug' ],
-          'value' => $needle,   // NOTE: Using LIKE will automagically add
+          // 'value' => $needle,   // NOTE: Using LIKE will automagically add
+          'value' => $has_many_needles ? implode( ' ', $many_needles ) : $needle,
           'compare' => 'LIKE',  //       SQL wildcards (%) around the value
         );
       }
@@ -246,7 +284,8 @@ class HRHS_Simple_Search {
       //        SELECT FOUND_ROWS();    <== returns the total number of found rows
       return array(
         'results' => $results,
-        'found_results' => $my_query->found_posts
+        'found_results' => $my_query->found_posts,
+        'MySQL_query' => $my_query->request,
       );
 
     } else {
