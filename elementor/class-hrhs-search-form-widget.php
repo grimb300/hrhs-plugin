@@ -150,11 +150,11 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
     $this->add_inline_editing_attributes( 'login_msg', 'basic' );
 
     // Get the search term(s) (if present)
-    // FIXME: Tried using "s" as the query parameter, but it got picked up by core WP
-    $needle = empty( $_GET[ 'search' ] ) ? null : $_GET[ 'search' ];
+    // NOTE: WP uses magic quotes by default, have to use stripslashes on user provided $_GET values
+    $needle = empty( $_GET[ 'search' ] ) ? null : stripslashes( $_GET[ 'search' ] );
     
     // The haystack will always be the widget's search_type despite the request parameter "haystacks",
-    // keeping it around for possible backward compatability with the old "search" class
+    // keeping it around for possible backward compatibility with the old "search" class
     $haystack = $settings[ 'search_type' ];
     
     // Instantiate the "simple_search" object for this needle/haystack

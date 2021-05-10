@@ -122,16 +122,14 @@ class HRHS_Simple_Search {
 
     // Get the needle
     // TODO: Do I need to sanitize further since the needle is used in a MySQL query?
-    $needle = strtolower( filter_var( trim( $params[ 'needle' ] ), FILTER_SANITIZE_STRING ) );
-
-    // Check to see if multiple search terms were given (space delimited for now)
-    $many_needles = explode( ' ', $needle );
-    $has_many_needles = count( $many_needles ) > 1 ? true : false;
-
-    // if ( $has_many_needles ) {
-    //   hrhs_debug( sprintf( 'Needle (%s) has many needles:', $needle ) );
-    //   hrhs_debug( $many_needles );
-    // }
+    $full_needle = strtolower( $params[ 'needle' ] );
+    // Split the full search string into its parts delimited by spaces and punctuation
+    // FIXME: Building this list up over time. Starting with spaces, periods, commas, single- and double-quotes
+    $needles = preg_split( '/[\s\.,\'\"]+/', $full_needle );
+    $has_multiple_needles = count( $needles ) > 1 ? true : false;
+    if ( $has_multiple_needles ) {
+      hrhs_debug( sprintf( 'Full needle (%s) broken up into its parts: %s', $full_needle, implode( ' ', $needles ) ) );
+    }
 
     // Get the fields
     // Default is $this->default_search, but can be changed by $params[ 'fields' ]
@@ -201,8 +199,7 @@ class HRHS_Simple_Search {
         $search_clause = $field[ 'slug' ] . '_search_clause';
         $meta_query[ 'search_clause' ][ $search_clause ] = array(
           'key' => $field[ 'slug' ],
-          // 'value' => $needle,   // NOTE: Using LIKE will automagically add
-          'value' => $has_many_needles ? implode( ' ', $many_needles ) : $needle,
+          'value' => $full_needle,   // NOTE: Using LIKE will automagically add
           'compare' => 'LIKE',  //       SQL wildcards (%) around the value
         );
       }
@@ -295,7 +292,7 @@ class HRHS_Simple_Search {
       $results = HRHS_Database::get_results( array(
         'name' => $this->haystack_def[ 'slug' ],
         'columns' => array_map( function ( $field ) { return $field[ 'slug' ]; }, $this->searchable_fields ),
-        'needle' => $needle
+        'needle' => $full_needle,
       ) );
       return $results;
     }
