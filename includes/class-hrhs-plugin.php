@@ -30,6 +30,9 @@ class HRHS_Plugin {
         'slug' => 'name_entry',
         'singular_name' => 'Name Entry',
         'plural_name' => 'Name Entries',
+        // FIXME: This seems clunky. Consider rewriting.
+        // The Fields that a search can be split across AND the order they can be split across.
+        'split_search' => array( 'givenname', 'surname' ),
         // TODO: Verify which fields should be searchable, currently following what was done on old site
         'fields' => array(
           array(

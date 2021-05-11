@@ -25,6 +25,8 @@ class HRHS_Simple_Search {
   private $displayable_fields = array();
   private $default_search = array();
   private $default_sort = array();
+  private $split_searchable_fields = array();
+  private $can_split_search = false;
 
   /* *******
    * Methods
@@ -58,6 +60,34 @@ class HRHS_Simple_Search {
     );
     // If empty, default to the searchable_fields
     $this->default_search = empty( $default_search ) ? $this->searchable_fields : $default_search;
+
+    // Get the fields that can be split searched
+    // Cross reference with the fields that are searchable by this user
+    // hrhs_debug( sprintf( 'Searchable fields: %s', implode( ', ', array_map( function ( $f ) { return $f[ 'slug' ]; }, $this->searchable_fields ) ) ) );
+    // hrhs_debug( sprintf( 'Split searchable fields: %s', implode( ', ', $this->haystack_def[ 'split_search' ] ) ) );
+    $this->split_searchable_fields =
+      empty( $this->haystack_def[ 'split_search' ] )
+      ? array()
+      : array_filter(
+        $this->haystack_def[ 'split_search' ],
+        function( $split_field ) {
+          return array_reduce(
+            $this->searchable_fields,
+            function( $result, $search_field ) use ( $split_field ) {
+              return $result || $split_field === $search_field[ 'slug' ];
+            },
+            false
+          );
+        }
+      );
+    $this->can_split_search = count( $this->split_searchable_fields ) > 1;
+
+    // hrhs_debug( sprintf(
+    //   'Haystack %s %s do a split search using %s fields',
+    //   $this->haystack_def[ 'slug' ],
+    //   $this->can_split_search ? 'can' : 'can not',
+    //   empty( $this->split_searchable_fields ) ? 'none' : implode( ' ', $this->split_searchable_fields )
+    // ) );
 
     // Filter and order the displayable fields by the 'default_sort' param
     $default_sort = array_filter(
@@ -100,7 +130,7 @@ class HRHS_Simple_Search {
 
         // Replace the spaces in the search terms with wildcards
         $modified_search_string = preg_replace( '/\s+/', $wildcard, $search_string );
-        hrhs_debug( 'Modified search string: ' . $modified_search_string );
+        // hrhs_debug( 'Modified search string: ' . $modified_search_string );
 
         // Return the substituted search terms in the LIKE statement
         return sprintf( 'LIKE \'%s%s%s\'', $wildcard, $modified_search_string, $wildcard );
@@ -108,6 +138,16 @@ class HRHS_Simple_Search {
       $where
     );
     return $new_where;
+  }
+
+  // This is something I'm constantly having to do over and over. Get the slugs out of an array of field objects
+  private function get_field_slugs( $field_objs = array() ) {
+    return array_map(
+      function ( $field_obj ) {
+        return $field_obj[ 'slug' ];
+      },
+      $field_objs
+    );
   }
 
   public function get_search_results( $params = array() ) {
@@ -124,8 +164,9 @@ class HRHS_Simple_Search {
     // TODO: Do I need to sanitize further since the needle is used in a MySQL query?
     $full_needle = strtolower( $params[ 'needle' ] );
     // Split the full search string into its parts delimited by spaces and punctuation
+    // Make sure to squash any empty needles
     // FIXME: Building this list up over time. Starting with spaces, periods, commas, single- and double-quotes
-    $needles = preg_split( '/[\s\.,\'\"]+/', $full_needle );
+    $needles = array_filter( preg_split( '/[\s\.,\'\"]+/', $full_needle ), function ( $elm ) { return ! empty( $elm ); } );
     $has_multiple_needles = count( $needles ) > 1 ? true : false;
     if ( $has_multiple_needles ) {
       hrhs_debug( sprintf( 'Full needle (%s) broken up into its parts: %s', $full_needle, implode( ' ', $needles ) ) );
@@ -142,6 +183,8 @@ class HRHS_Simple_Search {
       }
     );
     $search_fields = empty( $filtered_fields ) ? $this->default_search : $filtered_fields;
+    $search_field_slugs = $this->get_field_slugs( $search_fields );
+    $will_search_multiple_fields = count( $search_fields ) > 1;
 
     // Get the number of results to return. Default is 'all' (-1)
     $num_results = empty( $params[ 'num_results'] ) ? -1 : intval( $params[ 'num_results' ] );
@@ -189,33 +232,105 @@ class HRHS_Simple_Search {
       //   ORDER BY CAST(mt1.meta_value AS CHAR) ASC, CAST(mt2.meta_value AS CHAR) ASC
       //   LIMIT 0, 50
       // END SQL code break
-      $meta_query = array(
-        'relation' => 'AND', // The search_clause will be ANDed with any sorting clauses (shouldn't affect the results)
-        'search_clause' => array(
-          'relation' => 'OR', // The individual searches are ORed
-        )
-      );
-      foreach( $search_fields as $field ) {
-        $search_clause = $field[ 'slug' ] . '_search_clause';
-        $meta_query[ 'search_clause' ][ $search_clause ] = array(
-          'key' => $field[ 'slug' ],
-          'value' => $full_needle,   // NOTE: Using LIKE will automagically add
-          'compare' => 'LIKE',  //       SQL wildcards (%) around the value
-        );
-      }
+
+      // After initial implementation I found that trying to do this in one massive
+      // WP_Query is VERY slow beyond two "needles" and two search fields. This is because
+      // every AND term in the WHERE clause requires a new INNER JOIN. The total number of JOINs
+      // increases exponentially with the number of needles/fields. Yay for postmeta!
+      // This method has been commented out below:
+      // $meta_query = array(
+      //   'relation' => 'AND', // The search_clause will be ANDed with any sorting clauses (shouldn't affect the results)
+      //   'search_clause' => array(
+      //     'relation' => 'OR', // The individual searches are ORed
+      //   )
+      // );
+      // // Start with the "dumb" search. Search for the full needle string in each of the search fields.
+      // foreach( $search_field_slugs as $field ) {
+      //   $search_clause = $field . '_search_clause';
+      //   $meta_query[ 'search_clause' ][ $search_clause ] = array(
+      //     'key' => $field,
+      //     'value' => $full_needle,   // NOTE: Using LIKE will automagically add
+      //     'compare' => 'LIKE',       //       SQL wildcards (%) around the value
+      //   );
+      // }
+      // // If the full needle string can be broken up into parts,
+      // // search for the parts in each of the search fields.
+      // // This is different than the above search since it strips out extra spaces and punctuation
+      // // FIXME: Do I really need this search AND the one above. Consider removing the "dumb" search.
+      // if ( $has_multiple_needles ) {
+      //   foreach( $search_field_slugs as $field ) {
+      //     $search_clause = $field . '_smarter_search_clause';
+      //     $meta_query[ 'search_clause' ][ $search_clause ] = array(
+      //       'key' => $field,
+      //       'value' => implode( ' ', $needles ),   // NOTE: Using LIKE will automagically add
+      //       'compare' => 'LIKE',       //       SQL wildcards (%) around the value
+      //     );
+      //   }
+      // }
+      // // FIXME: This seems clunky. Consider rewriting.
+      // // If the full needle string can be broken up into parts
+      // //   AND the user wants to search on multiple fields
+      // //   AND this haystack can split a search across multiple fields
+      // //   AND the defined split search fields are in the user fields
+      // // Then add the meta queries to perform these searches
+      // hrhs_debug( sprintf(
+      //   'Checking to see if the split search fields (%s) are contained within the user search fields (%s)',
+      //   implode( ', ', $this->split_searchable_fields ),
+      //   implode( ', ', $search_field_slugs )
+      // ) );
+      // $user_fields_is_split_search = array_reduce(
+      //   $this->split_searchable_fields,
+      //   function( $result, $split_search ) use ( $search_field_slugs ) {
+      //     return $result && in_array( $split_search, $search_field_slugs );
+      //   },
+      //   true
+      // );
+      // hrhs_debug( sprintf( 'The user defined search fields %s match the split search fields', $user_fields_is_split_search ? 'does' : 'does not' ) );
+      // hrhs_debug( sprintf( 'Searching for needles: %s', implode( ', ', $needles ) ) );
+      // if ( $has_multiple_needles && $will_search_multiple_fields && $this->can_split_search && $user_fields_is_split_search ) {
+      //   // FIXME: This algorithm works for two split search fields, more than two requires being more clever
+      //   $left_field = $this->split_searchable_fields[ 0 ];
+      //   $right_field = $this->split_searchable_fields[ 1 ];
+      //   for ( $idx = 1; $idx < count( $needles ); $idx += 1 ) {
+      //     $split_search_clause = $left_field . '_' . $right_field . '_split_search_' . $idx . '_clause';
+      //     $left_search_clause = $left_field . '_left_search_' . $idx . '_clause';
+      //     $right_search_clause = $right_field . '_right_search_' . $idx . '_clause';
+      //     $left_search_string = implode( ' ', array_slice( $needles, 0, $idx ) );
+      //     $right_search_string = implode( ' ', array_slice( $needles, $idx ) );
+      //     hrhs_debug( sprintf( 
+      //       'For %s, left search (%s) and right search (%s)',
+      //       $split_search_clause, $left_search_string, $right_search_string
+      //     ) );
+      //     $meta_query[ 'search_clause' ][ $split_search_clause ] = array(
+      //       'relation' => 'AND',
+      //       $left_search_clause => array(
+      //         'key' => $left_field,
+      //         'value' => $left_search_string,   // NOTE: Using LIKE will automagically add
+      //         'compare' => 'LIKE',       //       SQL wildcards (%) around the value
+      //       ),
+      //       $right_search_clause => array(
+      //         'key' => $right_field,
+      //         'value' => $right_search_string,   // NOTE: Using LIKE will automagically add
+      //         'compare' => 'LIKE',       //       SQL wildcards (%) around the value
+      //       ),
+      //     );
+      //   }
+      // }
+      //
+      // END VERY slow method
+      ////////////////////////////////////////////////////////////////////////
+
       // Add sort ordering
       $orderby = array();
       foreach( $sort_order as $field ) {
-        // If there isn't already a search clause for this field create a simple exists clause
+        // Create a simple exists clause for each ordered field
         // FIXME: This seems dangerous. It won't display records where the meta value doesn't exist.
         //        Not sure if it's possible to guarantee add records have all meta values right now.
         $sort_clause = $field[ 'slug' ] . '_sort_clause';
-        // if ( ! array_key_exists( $sort_clause, $meta_query ) ) {
-          $meta_query[ $sort_clause ] = array(
-            'key' => $field[ 'slug' ],
-            'compare' => 'EXISTS',
-          );
-        // }
+        $meta_query[ $sort_clause ] = array(
+          'key' => $field[ 'slug' ],
+          'compare' => 'EXISTS',
+        );
         $orderby[ $sort_clause ] = strtoupper( $field[ 'dir' ] );
       }
 
@@ -253,6 +368,7 @@ class HRHS_Simple_Search {
 
       // NOTE: Have to put a backslash in front of WP_Query to find it in the global namespace
       $my_query = new \WP_Query( $get_posts_query );
+      hrhs_debug( 'my_query = ' . $my_query->request );
 
       // Turn the array of post IDs into an array of arrays containing the postmeta data for each post
       $results = array_map(
