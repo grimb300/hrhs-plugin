@@ -440,12 +440,6 @@ class HRHS_Simple_Search {
           // hrhs_debug( 'Split search query: ' . $my_query->request );
           hrhs_debug( 'Split search query:' );
           hrhs_debug( $wp_query[ 'meta_query' ][ 'search_clause' ] );
-
-          // IF this search returned results, quit the for loop
-          // FIXME: Could make this part of the loop test
-          // if ( $my_query->found_posts > 0 ) {
-          //   break;
-          // }
         }
       }
 
@@ -505,6 +499,10 @@ class HRHS_Simple_Search {
 
     } else {
       // hrhs_debug( 'HRHS_Simple_Search::get_search_results - Searching custom database tables' );
+
+      // TODO: Create a split search similar to what was done for the CPT search.
+      //       Should be able to do all searches at one time (instead of iteratively)
+      //       Since it is using custom tables, there is less of a penalty for having multiple terms.
 
       require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-database.php';
       $results = HRHS_Database::get_results( array(
