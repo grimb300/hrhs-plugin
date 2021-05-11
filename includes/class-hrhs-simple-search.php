@@ -320,31 +320,135 @@ class HRHS_Simple_Search {
       // END VERY slow method
       ////////////////////////////////////////////////////////////////////////
 
-      // Add sort ordering
-      $orderby = array();
-      foreach( $sort_order as $field ) {
-        // Create a simple exists clause for each ordered field
-        // FIXME: This seems dangerous. It won't display records where the meta value doesn't exist.
-        //        Not sure if it's possible to guarantee add records have all meta values right now.
-        $sort_clause = $field[ 'slug' ] . '_sort_clause';
-        $meta_query[ $sort_clause ] = array(
-          'key' => $field[ 'slug' ],
-          'compare' => 'EXISTS',
-        );
-        $orderby[ $sort_clause ] = strtoupper( $field[ 'dir' ] );
-      }
-
-      // Build the query for this haystack
-      $get_posts_query = array(
+      // Define the default WP_Query query (used by all searches below)
+      $wp_query = array(
         'posts_per_page' => $num_results,
         'paged' => $page_num,
         'fields' => 'ids',   // Return an array of post IDs
         'post_type' => $this->haystack_def[ 'slug' ], // Search only the current haystack's post type
         'post_status' => 'publish', // Return only published posts
-        'meta_query' => $meta_query,
-        'orderby' => $orderby,
+        'meta_query' => array( 'relation' => 'AND' ), // The top level will AND the search clause with the sort clause(s)
+        'orderby' => array(),
       );
+      // Add the sort ordering
+      foreach( $sort_order as $field ) {
+        // Create a simple exists clause for each ordered field
+        // FIXME: This seems dangerous. It won't display records where the meta value doesn't exist.
+        //        Not sure if it's possible to guarantee add records have all meta values right now.
+        $sort_clause = $field[ 'slug' ] . '_sort_clause';
+        $wp_query[ 'meta_query' ][ $sort_clause ] = array(
+          'key' => $field[ 'slug' ],
+          'compare' => 'EXISTS',
+        );  
+        $wp_query[ 'orderby' ][ $sort_clause ] = strtoupper( $field[ 'dir' ] );
+      }  
+
+      ////////////////////////////////////////////////////////////////////////
+      // New method
+
+      // 1. See if we get lucky and the search string with no manipulation returns results
+
+      // Create a meta_query using only the $full_needle on each $search_field
+      $wp_query[ 'meta_query' ][ 'search_clause' ] = array(
+        'relation' => 'OR'
+      );
+      foreach ( $search_field_slugs as $search_field ) {
+        $search_clause = $search_field . '_full_needle_clause';
+        $wp_query[ 'meta_query' ][ 'search_clause' ][ $search_clause ] = array(
+          'key' => $search_field,
+          'value' => $full_needle,
+          'compare' => 'LIKE',
+        );
+      }
+      
+      $my_query = new \WP_Query( $wp_query );
+      // hrhs_debug( 'Full needle query: ' . $my_query->request );
+      hrhs_debug( 'Full needle query:' );
+      hrhs_debug( $wp_query[ 'meta_query' ][ 'search_clause' ] );
   
+      // 2. After breaking the full string into multiple needles, try all needles on each field
+      
+      if ( 0 === $my_query->found_posts && $has_multiple_needles ) {
+        // Create a meta_query using all the $needles on each $search_field
+        $wp_query[ 'meta_query' ][ 'search_clause' ] = array(
+          'relation' => 'OR'
+        );
+        foreach( $search_field_slugs as $search_field ) {
+          $search_clause = $search_field . '_smarter_search_clause';
+          $wp_query[ 'meta_query' ][ 'search_clause' ][ $search_clause ] = array(
+            'key' => $search_field,
+            'value' => implode( ' ', $needles ),
+            'compare' => 'LIKE',
+          );
+        }
+
+        $my_query = new \WP_Query( $wp_query );
+        // hrhs_debug( 'Smarter search query: ' . $my_query->request );
+        hrhs_debug( 'Smarter search query:' );
+        hrhs_debug( $wp_query[ 'meta_query' ][ 'search_clause' ] );
+    }
+
+      // 3. If there are multiple needles and multiple fields and the fields support a split search
+      //    Try each of the splits individually and return the results
+
+      // Is this a split search candidate
+      $can_split_search = 
+        $has_multiple_needles &&        // This search string can be split
+        $will_search_multiple_fields && // This search is searching multiple fields
+        $this->can_split_search &&      // This haystack is capable of doing a split search
+        array_reduce(                   // The split searchable fields are being searched
+          $this->split_searchable_fields,
+          function ( $result, $split_search ) use ( $search_field_slugs ) {
+            return $result && in_array( $split_search, $search_field_slugs );
+          },
+          true
+        );
+
+      if ( 0 === $my_query->found_posts && $can_split_search ) {
+        // FIXME: This algorithm works for two split search fields
+        //        More than two requires being more clever
+        // Get the two fields to split the search across
+        $left_field = $this->split_searchable_fields[ 0 ];
+        $right_field = $this->split_searchable_fields[ 1 ];
+
+        // Iterate across the needles, splitting them up into different groups
+        // Break the loop prematurely if the query returns any results
+        // FIXME: This may not return all possible matches.
+        //        I probably don't care because I'm migrating to custom db tables.
+        for ( $idx = 1; $idx < count( $needles ) && 0 === $my_query->found_posts; $idx += 1 ) {
+          $left_search_clause = $left_field . '_left_search_clause';
+          $right_search_clause = $right_field . '_right_search_clause';
+          $left_search_string = implode( ' ', array_slice( $needles, 0, $idx ) );
+          $right_search_string = implode( ' ', array_slice( $needles, $idx ) );
+
+          // Create a meta_query ANDing the left and right strings
+          $wp_query[ 'meta_query' ][ 'search_clause' ] = array(
+            'relation' => 'AND',
+            $left_search_clause => array(
+              'key' => $left_field,
+              'value' => $left_search_string,
+              'compare' => 'LIKE',
+            ),
+            $right_search_clause => array(
+              'key' => $right_field,
+              'value' => $right_search_string,
+              'compare' => 'LIKE',
+            ),
+          );
+
+          $my_query = new \WP_Query( $wp_query );
+          // hrhs_debug( 'Split search query: ' . $my_query->request );
+          hrhs_debug( 'Split search query:' );
+          hrhs_debug( $wp_query[ 'meta_query' ][ 'search_clause' ] );
+
+          // IF this search returned results, quit the for loop
+          // FIXME: Could make this part of the loop test
+          // if ( $my_query->found_posts > 0 ) {
+          //   break;
+          // }
+        }
+      }
+
       /* ************************************************************************************************
        * Quick MySQL code break
        * After playing around in phpMyAdmin, I came up with this direct MySQL query which does what I want
@@ -367,8 +471,6 @@ class HRHS_Simple_Search {
       // hrhs_debug( $get_posts_query );
 
       // NOTE: Have to put a backslash in front of WP_Query to find it in the global namespace
-      $my_query = new \WP_Query( $get_posts_query );
-      hrhs_debug( 'my_query = ' . $my_query->request );
 
       // Turn the array of post IDs into an array of arrays containing the postmeta data for each post
       $results = array_map(
