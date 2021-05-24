@@ -202,17 +202,39 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
                   $value = empty( $needle[ $slug ] ) ? null : $needle[ $slug ];
                   $disabled = $field[ 'search' ] === 'member' && ! is_user_logged_in() ? ' disabled' : '';
                   ?>
-                  <label for="<?php echo $id; ?>"><?php echo $label; ?><?php echo empty( $disabled ) ? '' : ' (members only)'; ?></label>
-                  <input type="text" name="<?php echo $name; ?>" id="<?php echo $id; ?>" value="<?php echo $value; ?>"<?php echo $disabled; ?>>
+                  <p class="hrhs-input-row">
+                    <input type="text" name="<?php echo $name; ?>" id="<?php echo $id; ?>" value="<?php echo $value; ?>"<?php echo $disabled; ?>>
+                    <label for="<?php echo $id; ?>"><?php echo $label; ?><?php echo empty( $disabled ) ? '' : ' (members only)'; ?></label>
+                  </p>
                   <?php
                 }
               } else {
                 ?>
-                <input type="text" name="search" id="hrhs-search-needle" value="<?php echo $needle; ?>">
+                <p class="hrhs-input-row">
+                  <input type="text" name="search" id="hrhs-search-needle" value="<?php echo $needle; ?>">
+                </p>
                 <?php
               }
               ?>
-              <input type="submit" class="search-submit" value="<?php echo $settings[ 'button_text' ]; ?>">
+              <p class="hrhs-input-row">
+                <select name="num_results" id="hrhs-search-results-per-page">
+                  <?php
+                  // FIXME: Need to make this a class property
+                  $num_results_options = array( '10', '25', '50', 'all' );
+                  foreach ( $num_results_options as $option ) {
+                    $num_results = empty( $_GET[ 'num_results' ] ) ? $settings[ 'num_results' ] : $_GET[ 'num_results' ];
+                    $selected = $option === $num_results ? ' selected' : '';
+                    ?>
+                    <option value="<?php echo $option; ?>"<?php echo $selected; ?>><?php echo $option; ?></option>
+                    <?php
+                  }
+                  ?>
+                </select>
+                <label for="hrhs-search-results-per-page">Results Per Page</label>
+              </p>
+              <p class="hrhs-input-row">
+                <input type="submit" class="search-submit button button-primary" value="<?php echo $settings[ 'button_text' ]; ?>">
+              </p>
             </div>
             <div class="hrhs-option-wrap">
               <div class="hrhs-search-results-per-page-wrap">

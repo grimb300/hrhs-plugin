@@ -20,6 +20,24 @@
   align-items: start;
 }
 
+.hrhs-input-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  /* flex-wrap: wrap; */
+}
+
+.hrhs-input-row > input,
+/* The theme (I think) wraps a select element in a div.select_container */
+.hrhs-input-row > .select_container,
+.hrhs-input-row > select {
+  width: 30ch;
+}
+
+.hrhs-input-row > label {
+  padding-left: 1.5em;
+}
+
 .hrhs-option-wrap {
   display: flex;
   /* justify-content: space-between; */
