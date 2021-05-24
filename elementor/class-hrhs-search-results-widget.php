@@ -208,6 +208,14 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       // Get the sortable fields from the fields definition
       $sortable_fields = $search_obj->get_default_sort();
 
+      // Get the fields searchable by this user from the fields definition
+      $possible_searchable_fields = $search_obj->get_all_search_fields();
+      $user_searchable_fields = $search_obj->get_search_fields();
+
+      // If there are multiple searchable fields, 
+      // TODO: Need to come up with a plan for how to search with the potential of there being multiple needles,
+      // one per searchable field. Will have to make changes in the widget and in the simple search object.
+
       // Get the sort field and direction from the url
       // Defaults to the first sortable_field slug and default_sort_dir, respectively
       $sort_field = empty( $_GET[ 'sort_field' ] ) ? $sortable_fields[0][ 'slug' ]             : $_GET[ 'sort_field' ];
