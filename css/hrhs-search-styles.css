@@ -27,7 +27,7 @@
   /* flex-wrap: wrap; */
 }
 
-.hrhs-input-row > input,
+.hrhs-input-row > input[type="text"],
 /* The theme (I think) wraps a select element in a div.select_container */
 .hrhs-input-row > .select_container,
 .hrhs-input-row > select {
