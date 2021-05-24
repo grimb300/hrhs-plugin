@@ -151,7 +151,7 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
 
     // Get the search term(s) (if present)
     // NOTE: WP uses magic quotes by default, have to use stripslashes on user provided $_GET values
-    $needle = empty( $_GET[ 'search' ] ) ? null : stripslashes( $_GET[ 'search' ] );
+    $needle = empty( $_GET[ 'search' ] ) ? null : stripslashes_deep( $_GET[ 'search' ] );
     
     // The haystack will always be the widget's search_type despite the request parameter "haystacks",
     // keeping it around for possible backward compatibility with the old "search" class
@@ -192,7 +192,26 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
           <?php // FIXME: Tried using "s" as the query parameter, but it got picked up by core WP ?>
           <div class="hrhs-form-layout-wrap">
             <div class="hrhs-input-wrap">
-              <input type="text" name="search" id="hrhs-search-needle" value="<?php echo $needle; ?>">
+              <?php 
+              if ( count( $possible_searchable_fields ) > 1 ) {
+                foreach ( $possible_searchable_fields as $field ) {
+                  $slug = $field[ 'slug' ];
+                  $label = $field[ 'label' ];
+                  $id = 'hrhs-search-needle-' . $slug;
+                  $name = sprintf( 'search[%s]', $slug );
+                  $value = empty( $needle[ $slug ] ) ? null : $needle[ $slug ];
+                  $disabled = $field[ 'search' ] === 'member' && ! is_user_logged_in() ? ' disabled' : '';
+                  ?>
+                  <label for="<?php echo $id; ?>"><?php echo $label; ?><?php echo empty( $disabled ) ? '' : ' (members only)'; ?></label>
+                  <input type="text" name="<?php echo $name; ?>" id="<?php echo $id; ?>" value="<?php echo $value; ?>"<?php echo $disabled; ?>>
+                  <?php
+                }
+              } else {
+                ?>
+                <input type="text" name="search" id="hrhs-search-needle" value="<?php echo $needle; ?>">
+                <?php
+              }
+              ?>
               <input type="submit" class="search-submit" value="<?php echo $settings[ 'button_text' ]; ?>">
             </div>
             <div class="hrhs-option-wrap">

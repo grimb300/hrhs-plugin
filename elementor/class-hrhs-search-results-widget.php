@@ -179,7 +179,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     // Get the search term(s) (if present)
     // $needle = empty( $_GET[ 'search' ] ) ? null : $_GET[ 'search' ];
     // NOTE: WP uses magic quotes by default, have to use stripslashes on user provided $_GET values
-    $needle = empty( $_GET[ 'search' ] ) ? null : stripslashes( $_GET[ 'search' ] );
+    $needle = empty( $_GET[ 'search' ] ) ? null : stripslashes_deep( $_GET[ 'search' ] );
     // hrhs_debug( 'Search string out of the URL: ' . $needle );
 
     // Get the haystack (if present)
