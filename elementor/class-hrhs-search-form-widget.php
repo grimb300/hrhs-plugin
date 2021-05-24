@@ -165,15 +165,6 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
     $user_searchable_fields = $search_obj->get_search_fields();
     $not_searchable = empty( $user_searchable_fields );
 
-    // Get the selected search fields (if present)
-    $selected_fields = array_map(
-      function ( $field ) { return $field[ 'slug' ]; },
-      $search_obj->get_default_search()
-    );
-    if ( ! empty ( $_GET[ 'search_fields' ] ) ) {
-      $selected_fields = $_GET[ 'search_fields' ];
-    }
-
     ?>
     <div class="hrhs_search_form_wrap">
       <h4 <?php echo $this->get_render_attribute_string( 'title'); ?>><?php echo $settings[ 'title' ]; ?></h4>
