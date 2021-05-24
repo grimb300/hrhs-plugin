@@ -4,7 +4,7 @@
  * Plugin Name:       Rocktown History Plugin
  * Plugin URI:        https://rocktownhistory.com/
  * Description:       Create, display, and manage Harrisonburg-Rockingham Historical Society archives.
- * Version:           0.2.0
+ * Version:           0.2.1
  * Requires at least: 5.2
  * Requires PHP:      7.2
  * Author:            Bob Grim

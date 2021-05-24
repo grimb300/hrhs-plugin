@@ -11,3 +11,4 @@ WordPress plugin used for the Harrisonburg-Rockingham Historical Society archive
 | **ver_0_1_2** | Sorting is "sorted". Fixed search problem where choosing multiple fields required them to be ANDed |
 | **ver_0_1_3** | Tweaks to the search form and pagination links. Add print styling.                                 |
 | **ver_0_2_0** | Merge ver_0_1_3 with main. Add split/fuzzy searching                                               |
+| **ver_0_2_1** | Split the name search into two fields (surname and given name)                                     |
