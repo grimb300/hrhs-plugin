@@ -14,8 +14,8 @@ class HRHS_Simple_Search {
   // or custom database tables ( using $wpdb->get_results( <SQL SELECT statement> ) )
   // FIXME: I could allow this to be configured by the constructor if the plugin needs to mix the types of data
   //        For now I'm keeping it static for all searches
-  private $custom_post_types = true;  // Search CPTs
-  // private $custom_post_types = false; // Search custom database tables
+  // private $custom_post_types = true;  // Search CPTs
+  private $custom_post_types = false; // Search custom database tables
 
   // These properties are filled in by the constructor
   private $needle = null;
@@ -192,7 +192,7 @@ class HRHS_Simple_Search {
             }
           )
         );
-        hrhs_debug( sprintf( 'Filtered "%s" to "%s"', $string, $filtered_string ) );
+        // hrhs_debug( sprintf( 'Filtered "%s" to "%s"', $string, $filtered_string ) );
         // $searchable_needle[ $slug ] = $string;
         $searchable_needle[ $slug ] = $filtered_string;
       }
@@ -260,9 +260,9 @@ class HRHS_Simple_Search {
 
       // NOTE: Have to put a backslash in front of WP_Query to find it in the global namespace
       $my_query = new \WP_Query( $wp_query );
-      // hrhs_debug( 'New needle query: ' . $my_query->request );
-      hrhs_debug( 'New needle query:' );
-      hrhs_debug( $wp_query[ 'meta_query' ] );
+      hrhs_debug( 'New needle query: ' . $my_query->request );
+      // hrhs_debug( 'New needle query:' );
+      // hrhs_debug( $wp_query[ 'meta_query' ] );
 
       /* ************************************************************************************************
        * Quick MySQL code break
@@ -326,8 +326,10 @@ class HRHS_Simple_Search {
       require_once HRHS_PLUGIN_PATH . 'includes/class-hrhs-database.php';
       $results = HRHS_Database::get_results( array(
         'name' => $this->haystack_def[ 'slug' ],
-        'columns' => array_map( function ( $field ) { return $field[ 'slug' ]; }, $this->searchable_fields ),
-        'needle' => $full_needle,
+        'needle' => $searchable_needle,
+        'sort' => $sort_order,
+        'records_per_page' => $num_results,
+        'paged' => $page_num,
       ) );
       return $results;
     }

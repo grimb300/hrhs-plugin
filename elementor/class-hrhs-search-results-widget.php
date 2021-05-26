@@ -282,7 +282,7 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
           // Calculate the last page of the pagination
           // For all results ($num_results === -1), the last page is 1
           $last_page = -1 === $num_results ? 1 : intval( ceil( $total_results / $num_results ) );
-          hrhs_debug( sprintf( 'Total results: %s, Results per page: %s, Last page: %s', $total_results, $num_results, $last_page ) );
+          // hrhs_debug( sprintf( 'Total results: %s, Results per page: %s, Last page: %s', $total_results, $num_results, $last_page ) );
           // Display the pagination links
           $this->gen_pagination_links(
             array( 

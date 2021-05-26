@@ -155,49 +155,89 @@ class HRHS_Database {
       return array();;
     }
 
+    // Build the parts of the SQL query
+
+    // Generate the table name
     $table_name = self::gen_table_name( $params[ 'name' ] );
 
-    // If either the columns or needle params are empty, return all the results
-    // FIXME: This seems like a good compromise, allows returning the entire table. Revisit this decision later.
-    if ( empty( $params[ 'columns' ] ) || empty( $params[ 'needle' ] ) ) {
-      // hrhs_debug( 'HRHS_Database::get_results - Missing columns or needle params, returning all the results' );
-      $sql_command = "SELECT * FROM $table_name LIMIT 20;";
-      // hrhs_debug( 'The full SQL command is:' );
-      // hrhs_debug( $sql_command );
-  
-      // Return the results of the database query
-      $results = $wpdb->get_results( $sql_command, ARRAY_A );
-      // hrhs_debug( sprintf( 'The search results (%d):', count( $results ) ) );
-      // hrhs_debug( $results );
-      return $results;
+    // If there is a needle, generate the WHERE terms
+    $where_placeholder = '';
+    $where_values = array();
+    if ( ! empty( $params[ 'needle' ] ) ) {
+      $where_placeholder_parts = array();
+      $where_values = array();
+      foreach ( $params[ 'needle' ] as $column => $string ) {
+        if ( ! empty( $string) ) {
+          $where_placeholder_parts[] = "$column LIKE \"%%%s%%\"";
+          $where_values[] = $string;
+        }
       }
+      $where_placeholder = implode(  ' AND ', $where_placeholder_parts );
+    } else {
+      // FIXME: For now, return no results when a needle isn't passed.
+      return array();
+    }
 
-    // hrhs_debug( sprintf( 'HRHS_Database::get_results - Searching for %s within the table %s with columns:', $params[ 'needle' ], $table_name ) );
-    // hrhs_debug( $params[ 'columns' ] );
-    // Generate the placeholders used byt $wpd->prepare dynamically, the number of columns being searched is variable
-    $placeholders = implode( ' OR ', array_map(
-      function ( $column ) { return $column . ' LIKE %s'; },
-      $params[ 'columns' ] )
-    );
-    // hrhs_debug( 'The placeholders string is:' );
-    // hrhs_debug( $placeholders );
+    // If there is a sort order, generate the ORDER BY terms
+    $order_by = '';
+    if ( ! empty( $params[ 'sort' ] ) ) {
+      // hrhs_debug( 'Creating sort order:' );
+      // hrhs_debug( $params[ 'sort' ] );
+      $order_by = "ORDER BY " . implode( ', ', array_map(
+        function ( $sort ) {
+          return sprintf( 'CAST(%s AS CHAR) %s', $sort[ 'slug' ], strtoupper( $sort[ 'dir' ] ) );
+        },
+        $params[ 'sort' ]
+      ) );
+    }
 
-    // Build the SQL command, use $wpdb->prepare to sanitize the needle and get proper quoting for LIKE statement
-    $wild = '%';
-    $needle = $wild . $wpdb->esc_like( $params[ 'needle' ] ) . $wild;
-    // hrhs_debug( 'The needle is: ' . $needle );
-    $sql_command = $wpdb->prepare(
-      "SELECT * FROM $table_name WHERE $placeholders",
-      array_fill( 0, count( $params[ 'columns' ] ), $needle )
+    // If pagination is requested, generate the LIMIT term
+    $limit = '';
+    if ( ! empty( $params[ 'records_per_page' ] ) ) {
+      $offset = 0;
+      if ( ! empty( $params[ 'paged' ] ) ) {
+        $offset = ( $params[ 'paged' ] - 1 ) * $params[ 'records_per_page' ];
+      }
+      $limit = sprintf( 'LIMIT %s, %s', $offset, $params[ 'records_per_page' ] );
+    }
+
+    // The SQL command I'm going for:
+    //    SELECT SQL_CALC_FOUND_ROWS  * FROM <table_name>  
+    //      WHERE <column_1> LIKE '%<string_1>%'
+    //      AND <column_2> LIKE '%<string_2>%'
+    //      ORDER BY CAST(<column_1> AS CHAR) <column_1_dir>, CAST(<column_2> AS CHAR) <column_2_dir>
+    //      LIMIT <start_record>, <num_records_per_page>
+
+    // Build the SQL command from the generated parts
+    // FIXME: Making an assumption that there will always be a needle.
+    //        If there isn't I'm not sure if I can use prepare()
+    // NOTE: Not using SQL_CALC_FOUND_ROWS due to this note in MySQL 8.0
+    //       https://dev.mysql.com/doc/refman/8.0/en/information-functions.html#function_found-rows
+    $query_sql_command = $wpdb->prepare(
+      "SELECT * FROM `$table_name` WHERE $where_placeholder $order_by $limit;",
+      $where_values
     );
-    // hrhs_debug( 'The full SQL command is:' );
-    // hrhs_debug( $sql_command );
+    // hrhs_debug( 'SQL Command: ' . $query_sql_command );
 
     // Return the results of the database query
-    $results = $wpdb->get_results( $sql_command, ARRAY_A );
+    $results = $wpdb->get_results( $query_sql_command, ARRAY_A );
     // hrhs_debug( sprintf( 'The search results (%d):', count( $results ) ) );
     // hrhs_debug( $results );
-    return $results;
+
+    // Get the total number of matches
+    $count_sql_command = $wpdb->prepare(
+      "SELECT COUNT(*) FROM `$table_name` WHERE $where_placeholder;",
+      $where_values
+    );
+    $total_matches = $wpdb->get_results( $count_sql_command, ARRAY_N );
+    // hrhs_debug( 'COUNT(*) results');
+    // hrhs_debug( $total_matches );
+
+    return array(
+      'results' => $results,
+      'found_results' => $total_matches[0][0],
+      'MySQL_query' => $query_sql_command,
+    );
 
   }
 
