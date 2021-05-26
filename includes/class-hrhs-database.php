@@ -169,7 +169,9 @@ class HRHS_Database {
       foreach ( $params[ 'needle' ] as $column => $string ) {
         if ( ! empty( $string) ) {
           $where_placeholder_parts[] = "$column LIKE \"%%%s%%\"";
-          $where_values[] = $string;
+          // $where_values[] = $string;
+          // This adds wildcards in place of spaces in the search string
+          $where_values[] = preg_replace( '/\s+/', '%', $string );
         }
       }
       $where_placeholder = implode(  ' AND ', $where_placeholder_parts );
@@ -217,7 +219,7 @@ class HRHS_Database {
       "SELECT * FROM `$table_name` WHERE $where_placeholder $order_by $limit;",
       $where_values
     );
-    // hrhs_debug( 'SQL Command: ' . $query_sql_command );
+    hrhs_debug( 'SQL Command: ' . $query_sql_command );
 
     // Return the results of the database query
     $results = $wpdb->get_results( $query_sql_command, ARRAY_A );
