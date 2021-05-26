@@ -177,7 +177,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     $settings = $this->get_settings_for_display();
 
     // Get the search term(s) (if present)
-    // $needle = empty( $_GET[ 'search' ] ) ? null : $_GET[ 'search' ];
     // NOTE: WP uses magic quotes by default, have to use stripslashes on user provided $_GET values
     $needle = empty( $_GET[ 'search' ] ) ? null : stripslashes_deep( $_GET[ 'search' ] );
     // hrhs_debug( 'Search string out of the URL: ' . $needle );
@@ -185,36 +184,27 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
     // Get the haystack (if present)
     $haystack = empty( $_GET[ 'search_type' ] ) ? null : $_GET[ 'search_type' ];
 
-    // If both the needle and haystack are defined, instantiate the "simple_search" object for this haystack
-    $search_obj = null;
+    // If both the needle and haystack are defined, display the search results
     if ( null !== $needle && null !== $haystack ) {
+      // Instantiate the "simple_search" object for this haystack
       $search_obj = new HRHS_Simple_Search( array( 'haystack' => $haystack ) );
-    }
 
-    ?>
-    <?php
-    // If a needle was provided, display the search results
-    if ( null !== $search_obj ) {
-      // Get the selected search fields (if present)
-      $selected_fields = empty( $_GET[ 'search_fields' ] ) ? array() : $_GET[ 'search_fields' ];
+      // Get the fields searchable by this user from the fields definition
+      $possible_searchable_fields = $search_obj->get_all_search_fields();
+      $user_searchable_fields = $search_obj->get_search_fields();
+
+      // TODO: Do I need to sanitize the needle to ensure it isn't searching on fields
+      //       that aren't searchable by this user?
 
       // Get the number of results per page (if present)
       // FIXME: Hard coded default needs to come from a centralized location
-      $num_results = empty( $_GET[ 'num_results' ] ) ? '50' : $_GET[ 'num_results' ];
+      $num_results = empty( $_GET[ 'num_results' ] ) ? 50 : intval( $_GET[ 'num_results' ] );
 
       // Get the page number to display
       $page_num = empty( $_GET[ 'results_page' ] ) ? 1 : $_GET[ 'results_page' ];
 
       // Get the sortable fields from the fields definition
       $sortable_fields = $search_obj->get_default_sort();
-
-      // Get the fields searchable by this user from the fields definition
-      $possible_searchable_fields = $search_obj->get_all_search_fields();
-      $user_searchable_fields = $search_obj->get_search_fields();
-
-      // If there are multiple searchable fields, 
-      // TODO: Need to come up with a plan for how to search with the potential of there being multiple needles,
-      // one per searchable field. Will have to make changes in the widget and in the simple search object.
 
       // Get the sort field and direction from the url
       // Defaults to the first sortable_field slug and default_sort_dir, respectively
@@ -246,7 +236,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       $search_results = $search_obj->get_search_results(
         array(
           'needle' => $needle,
-          'fields' => $selected_fields,
           'num_results' => $num_results,
           'page_num' => $page_num,
           'sort' => $sort_order,
@@ -254,14 +243,34 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
       );
 
       // Get the total number of results (not just the ones being displayed)
-      // FIXME: Needs a new function in HRHS_Simple_Search
       $total_results = $search_results[ 'found_results' ];
 
       ?>
       <div class="hrhs_search_results_wrap">
         <!-- <h4>MySQL query:</h4>
         <code><?php //echo $search_results[ 'MySQL_query' ]; ?></code> -->
-        <h4>Your search for "<?php echo $needle; ?>" generated <?php echo $total_results; ?> results</h4>
+        <?php
+        // Turn the needle ( slug => string ) pairs into <label> = "<string>"
+        $needle_strings = array();
+        foreach ( $needle as $slug => $string ) {
+          // Get the label out of the user searchable fields
+          $label = array_reduce(
+            $user_searchable_fields,
+            function ( $result, $field ) use ( $slug ) {
+              if ( $field[ 'slug' ] === $slug ) {
+                // FIXME: Stopped here.
+                $result = $field[ 'label' ];
+              }
+              return $result;
+            },
+            ''
+          );
+          if ( ! empty( $label ) && ! empty( $string ) ) {
+            $needle_strings[] = sprintf( '%s = "%s"', $label, $string );
+          }
+        }
+        ?>
+        <h4>Your search for <?php echo implode( ', ', $needle_strings ); ?> generated <?php echo $total_results; ?> results</h4>
         <?php
         // If any results were returned, display them here
         if ( $total_results > 0 ) {
@@ -272,7 +281,9 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
           <?php
 
           // Calculate the last page of the pagination
-          $last_page = intval( ceil( $total_results / intval( $num_results ) ) );
+          // For all results ($num_results === -1), the last page is 1
+          $last_page = -1 === $num_results ? 1 : intval( ceil( $total_results / $num_results ) );
+          hrhs_debug( sprintf( 'Total results: %s, Results per page: %s, Last page: %s', $total_results, $num_results, $last_page ) );
           // Display the pagination links
           $this->gen_pagination_links(
             array( 
