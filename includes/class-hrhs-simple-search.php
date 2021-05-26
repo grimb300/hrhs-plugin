@@ -180,10 +180,13 @@ class HRHS_Simple_Search {
         // FIXME: Do I want to do a search/replace here to filter out extra spaces and punctuation
         //        How about names that may or may not have a space, ex: "McGrath" vs "Mc Grath"
         // Old solution (for only the punctuation part of the problem):
+        // NOTE: Removing the appostraphe because it breaks searching for "o'don"
+        //       since it will return "Gordon" before "O'Donnell" or "O'Donald"
         $filtered_string = implode(
           ' ',
           array_filter(
-            preg_split( '/[\s\.,\'\"\-]+/', $string ),
+            // preg_split( '/[\s\.,\'\"\-]+/', $string ),
+            preg_split( '/[\s\.,\"\-]+/', $string ),
             function ( $elm ) {
               return ! empty( $elm );
             }

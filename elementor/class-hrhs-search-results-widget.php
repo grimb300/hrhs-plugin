@@ -144,18 +144,20 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
 
   // Generic function that will take the current search and add the provided query_vars, returning the new url
   private function gen_search_url( $add_query_vars = array() ) {
+    // Have to stripslashes
+    $my_get = stripslashes_deep( $_GET );
     // Grab the interesting query vars from the current url
     $query_vars = array();
-    if ( ! empty( $_GET[ 'search_type' ] ) )   { $query_vars[ 'search_type' ]   = $_GET[ 'search_type' ];   }
-    if ( ! empty( $_GET[ 'search' ] ) )        { $query_vars[ 'search' ]        = $_GET[ 'search' ];        }
-    if ( ! empty( $_GET[ 'search_fields' ] ) ) { $query_vars[ 'search_fields' ] = $_GET[ 'search_fields' ]; }
-    if ( ! empty( $_GET[ 'num_results' ] ) )   { $query_vars[ 'num_results' ]   = $_GET[ 'num_results' ];   }
+    if ( ! empty( $my_get[ 'search_type' ] ) )   { $query_vars[ 'search_type' ]   = $my_get[ 'search_type' ];   }
+    if ( ! empty( $my_get[ 'search' ] ) )        { $query_vars[ 'search' ]        = $my_get[ 'search' ];        }
+    if ( ! empty( $my_get[ 'search_fields' ] ) ) { $query_vars[ 'search_fields' ] = $my_get[ 'search_fields' ]; }
+    if ( ! empty( $my_get[ 'num_results' ] ) )   { $query_vars[ 'num_results' ]   = $my_get[ 'num_results' ];   }
     // Choosing to not preserve the results_page (for now)
     // This function is used by the pagination links (will update results_page anyway)
     // and sorting links (which should reset to page 1/empty results_page)
-    // if ( ! empty( $_GET[ 'results_page' ] ) )   { $query_vars[ 'results_page' ]   = $_GET[ 'results_page' ];   }
-    if ( ! empty( $_GET[ 'sort_field' ] ) ) { $query_vars[ 'sort_field' ] = $_GET[ 'sort_field' ]; }
-    if ( ! empty( $_GET[ 'sort_dir' ] ) )   { $query_vars[ 'sort_dir' ]   = $_GET[ 'sort_dir' ];   }
+    // if ( ! empty( $my_get[ 'results_page' ] ) )   { $query_vars[ 'results_page' ]   = $my_get[ 'results_page' ];   }
+    if ( ! empty( $my_get[ 'sort_field' ] ) ) { $query_vars[ 'sort_field' ] = $my_get[ 'sort_field' ]; }
+    if ( ! empty( $my_get[ 'sort_dir' ] ) )   { $query_vars[ 'sort_dir' ]   = $my_get[ 'sort_dir' ];   }
 
     // Remove any unwanted query vars
     // FIXME: Not implemented yet. Will likely add a second $sub_query_vars parameter
@@ -247,8 +249,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
 
       ?>
       <div class="hrhs_search_results_wrap">
-        <!-- <h4>MySQL query:</h4>
-        <code><?php //echo $search_results[ 'MySQL_query' ]; ?></code> -->
         <?php
         // Turn the needle ( slug => string ) pairs into <label> = "<string>"
         $needle_strings = array();
@@ -258,7 +258,6 @@ final class HRHS_Search_Results_Widget extends Widget_Base {
             $user_searchable_fields,
             function ( $result, $field ) use ( $slug ) {
               if ( $field[ 'slug' ] === $slug ) {
-                // FIXME: Stopped here.
                 $result = $field[ 'label' ];
               }
               return $result;
