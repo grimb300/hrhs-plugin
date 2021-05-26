@@ -184,7 +184,8 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
           <div class="hrhs-form-layout-wrap">
             <div class="hrhs-input-wrap">
               <?php 
-              if ( count( $possible_searchable_fields ) > 1 ) {
+              // TODO: Adding the label for all searches for now. Uncomment if this changes.
+              // if ( count( $possible_searchable_fields ) > 1 ) {
                 foreach ( $possible_searchable_fields as $field ) {
                   $slug = $field[ 'slug' ];
                   $label = $field[ 'label' ];
@@ -194,34 +195,31 @@ final class HRHS_Search_Form_Widget extends Widget_Base {
                   $disabled = $field[ 'search' ] === 'member' && ! is_user_logged_in() ? ' disabled' : '';
                   ?>
                   <p class="hrhs-input-row">
-                    <input type="text" name="<?php echo $name; ?>" id="<?php echo $id; ?>" value="<?php echo $value; ?>"<?php echo $disabled; ?>>
                     <label for="<?php echo $id; ?>"><?php echo $label; ?><?php echo empty( $disabled ) ? '' : ' (members only)'; ?></label>
+                    <input type="text" name="<?php echo $name; ?>" id="<?php echo $id; ?>" value="<?php echo $value; ?>"<?php echo $disabled; ?>>
                   </p>
                   <?php
                 }
-              } else {
-                ?>
-                <p class="hrhs-input-row">
-                  <input type="text" name="search" id="hrhs-search-needle" value="<?php echo $needle; ?>">
-                </p>
-                <?php
-              }
+              // } else {
+              // }
               ?>
               <p class="hrhs-input-row">
-                <select name="num_results" id="hrhs-search-results-per-page">
-                  <?php
-                  // FIXME: Need to make this a class property
-                  $num_results_options = array( '10', '25', '50', 'all' );
-                  foreach ( $num_results_options as $option ) {
-                    $num_results = empty( $_GET[ 'num_results' ] ) ? $settings[ 'num_results' ] : $_GET[ 'num_results' ];
-                    $selected = $option === $num_results ? ' selected' : '';
-                    ?>
-                    <option value="<?php echo $option; ?>"<?php echo $selected; ?>><?php echo $option; ?></option>
-                    <?php
-                  }
-                  ?>
-                </select>
                 <label for="hrhs-search-results-per-page">Results Per Page</label>
+                <?php
+                // FIXME: Need to make this a class property
+                $num_results_options = array(
+                  '10' => 10,
+                  '25' => 25,
+                  '50' => 50,
+                  'all' => -1,
+                );
+                $num_results = empty( $_GET[ 'num_results' ] ) ? $num_results_options[ $settings[ 'num_results' ] ] : intval( $_GET[ 'num_results' ] );
+                ?>
+                <select name="num_results" id="hrhs-search-results-per-page">
+                  <?php foreach ( $num_results_options as $label => $value ) { ?>
+                  <option value="<?php echo $value; ?>"<?php echo $num_results === $value ? ' selected' : '' ?>><?php echo $label; ?></option>
+                  <?php } ?>
+                </select>
               </p>
               <p class="hrhs-input-row">
                 <input type="submit" class="search-submit button button-primary" value="<?php echo $settings[ 'button_text' ]; ?>">
